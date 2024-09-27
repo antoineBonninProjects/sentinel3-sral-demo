@@ -1,5 +1,15 @@
 """
-Defines SingletonMeta: a metaclass to make Singletons
+This module defines the SingletonMeta metaclass for implementing the Singleton design pattern.
+This is not a thread safe implementation.
+
+Usage:
+    To make any class a Singleton, define it as follows:
+    
+    class MyClass(metaclass=SingletonMeta):
+        # class implementation
+
+Classes:
+    SingletonMeta -- Metaclass to enforce the Singleton pattern.
 """
 
 
