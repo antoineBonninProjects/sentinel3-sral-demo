@@ -1,3 +1,4 @@
+# pylint: skip-file
 """
 Test for module src.connectors.eumdac_connector
 
@@ -66,8 +67,8 @@ def test_token_refresh_with_margin(connector):
     Test that the token is refreshed based on the expiration margin
     """
     # Simulate that the token is close to expiration by adjusting _refresh_token_margin_mn
-    connector._refresh_token_margin_mn = timedelta(minutes=59)
-    connector._refresh_token()  # Refresh token based on the new margin
+    connector.refresh_token_margin_mn = timedelta(minutes=59)
+    connector.refresh_token()  # Refresh token based on the new margin
 
     # Assert that the token is refreshed even with a valid margin
     assert connector._token is not None
@@ -85,5 +86,5 @@ def test_token_not_refreshed_if_still_valid(mocker, connector):
     connector._token.expiration = datetime.now() + timedelta(hours=2)
 
     # Refresh the token (but it shouldn't refresh since token is still valid)
-    connector._refresh_token()
+    connector.refresh_token()
     mock_access_token.assert_not_called()

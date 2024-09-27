@@ -67,7 +67,7 @@ conda activate sentinel3-sral-demo
 ```
 
 ```sh {"id":"01J8P9NSFP1JWKZXHZ0CDQD3H3"}
-# (Optionnal) - setup precommit hooks (black, pylint)
+# (Optionnal) - setup precommit hooks (black, pylint, pytests)
 pre-commit install
 ```
 
