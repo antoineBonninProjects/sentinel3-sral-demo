@@ -14,11 +14,16 @@ import pytest
 from src.connectors.eumdac_connector import EumdacConnector
 
 
-# Mock eumdac.token.AccessToken class
+# Mock eumdac.token.AccessToken and eumdac.DataStore classes
 class MockAccessToken:
     def __init__(self, credentials):
         self.credentials = credentials
         self.expiration = datetime.now() + timedelta(hours=1)  # Mock a token valid for 1 hour
+
+
+class MockDataStore:
+    def __init__(self, token):
+        self.token = token
 
 
 @pytest.fixture
@@ -39,7 +44,13 @@ def mock_token(mocker):
 
 
 @pytest.fixture
-def connector(mock_config, mock_token):
+def mock_datastore(mocker):
+    # Mock the eumdac DataStore creation
+    mocker.patch("eumdac.DataStore", side_effect=MockDataStore)
+
+
+@pytest.fixture
+def connector(mock_config, mock_token, mock_datastore):
     # Initialize the EumdacConnector with mocked dependencies
     return EumdacConnector(credentials_filename="credentials.ini")
 
@@ -54,7 +65,7 @@ def test_load_credentials(connector):
 
 def test_token_refresh(connector):
     """
-    Test that the token is refreshed correctly
+    Test that the token is refreshed correctly on EumdacConnector init
     """
     assert connector._token is not None
     assert isinstance(connector._token, MockAccessToken)
@@ -88,3 +99,31 @@ def test_token_not_refreshed_if_still_valid(mocker, connector):
     # Refresh the token (but it shouldn't refresh since token is still valid)
     connector.refresh_token()
     mock_access_token.assert_not_called()
+
+
+def test_refresh_token_not_expired(connector):
+    """Test that the token is not refreshed if it's not expired."""
+    connector.refresh_token()  # First refresh to set the token
+    assert connector.refresh_token() is False  # No refresh should occur
+    assert connector._token.credentials == ("mocked_consumer_key", "mocked_consumer_secret")
+
+
+def test_refresh_token_expired(connector):
+    """Test that the token is refreshed if it's close to expiration."""
+    connector._token.expiration = datetime.now() - timedelta(minutes=1)  # Force expiration
+    assert connector.refresh_token() is True  # Token should be refreshed
+    assert connector._token.credentials == ("mocked_consumer_key", "mocked_consumer_secret")
+
+
+def test_datastore_property(connector):
+    """Test that accessing the datastore property refreshes the token if needed."""
+    assert connector.datastore is not None
+    assert isinstance(connector.datastore, MockDataStore)
+
+
+def test_datastore_refresh_token(connector):
+    """Test that accessing the datastore refreshes the token when needed."""
+    connector._token.expiration = datetime.now() - timedelta(minutes=1)  # Force expiration
+    datastore = connector.datastore
+    assert isinstance(datastore, MockDataStore)
+    assert datastore.token.credentials == ("mocked_consumer_key", "mocked_consumer_secret")
