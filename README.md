@@ -22,7 +22,7 @@ Antoine Bonnin
 
 Nice tool to render and execute shell commands from markdown in VSCode. Install the [VSCode extension](https://docs.runme.dev/getting-started/vscode).
 
-### Requirements
+### Required tools
 
 **python3.12**
 
@@ -69,4 +69,24 @@ conda activate sentinel3-sral-demo
 ```sh {"id":"01J8P9NSFP1JWKZXHZ0CDQD3H3"}
 # (Optionnal) - setup precommit hooks (black, pylint)
 pre-commit install
+```
+
+### Configuration requirements
+
+**EUMETSAT credentials file**
+
+First you need to create an account on [EUMETSAT eoportal](https://eoportal.eumetsat.int/cas/login)
+
+This is required to have an easy access to Sentinel3 data.
+
+Then save your credentials to `~/.eumdac/credentials.ini`
+
+```sh {"id":"01J8T3GWKJ78NSME8D352G5094"}
+# Create your credentials file - Replace with your own credentials :)
+mkdir -p ~/.eumdac
+cat <<EOF > ~/.eumdac/credentials.ini
+[myprofile]
+consumer_key=my_key
+consumer_secret=my_secret
+EOF
 ```
