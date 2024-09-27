@@ -7,3 +7,11 @@ repos:
   rev: v3.3.1
   hooks:
     - id: pylint
+- repo: local
+  hooks:
+    - id: run-pytests
+      name: Run Pytest
+      entry: python -m pytest tests
+      language: system
+      types: [python]
+      pass_filenames: false
