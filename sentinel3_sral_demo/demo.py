@@ -8,10 +8,14 @@ Run this script with:
 
 from src.connectors.eumdac_connector import EumdacConnector
 
+SEN3A_SRAL_LVL2_COLLECTION_ID = "EO:EUM:DAT:0415"
+
 if __name__ == "__main__":
     datastore = EumdacConnector().datastore
-    for collection_id in datastore.collections:
-        if "SRAL" in collection_id.title:
-            if "non-public" in collection_id.abstract:
-                continue
-            print(f"Collection ID({collection_id}): {collection_id.title}")
+
+    products = datastore.opensearch(query=f'pi={SEN3A_SRAL_LVL2_COLLECTION_ID}')
+    print(products)
+
+    for product in products:
+        print(product)
+        break

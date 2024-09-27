@@ -15,8 +15,14 @@ Dependencies:
     - configparser: For loading API credentials from a configuration file.
 
 Usage:
-    Example:
-        connector = EumdacConnector()
+    Example: list SRAL related collections
+
+        datastore = EumdacConnector().datastore
+        for collection_id in datastore.collections:
+            if "SRAL" in collection_id.title:
+                if "non-public" in collection_id.abstract:
+                    continue
+                print(f"Collection ID({collection_id}): {collection_id.title}")
 """
 
 import configparser
