@@ -49,4 +49,5 @@ class OpenSearchQueryFormatter:
             If `_query_params` is `{"q": "search", "size": 20}`, the result would be:
             "q=search&size=20"
         """
-        return "&".join([f"{k}={v}" for k, v in self._query_params.items()])
+        self._formatted_query = "&".join([f"{k}={v}" for k, v in self._query_params.items()])
+        return self._formatted_query
