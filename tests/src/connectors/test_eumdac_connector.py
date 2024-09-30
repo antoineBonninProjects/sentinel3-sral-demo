@@ -16,6 +16,7 @@ import xarray as xr
 import zcollection
 import zipfile
 
+
 from src.connectors.eumdac_connector import EumdacConnector
 
 
@@ -246,7 +247,7 @@ def test_download_products(connector, mocker):
     downloaded_folders = connector.download_products(collection_id, product_ids, download_dir)
 
     # Assert the correct folder structure is returned
-    assert downloaded_folders == ["downloads/product0", "downloads/product50"]
+    assert downloaded_folders == [f"downloads/product{x}" for x in range(100)]
 
 
 def test_unzip_product(connector, mocker):

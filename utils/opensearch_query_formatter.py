@@ -16,6 +16,10 @@ Usage:
 
 __all__ = ['OpenSearchQueryFormatter']
 
+from .logging_utils import setup_module_logger
+
+logger = setup_module_logger(__name__)
+
 
 class OpenSearchQueryFormatter:
     """
@@ -38,6 +42,8 @@ class OpenSearchQueryFormatter:
         the corresponding values to be used in the query string.
         :type query_params: dict
         """
+        if not isinstance(query_params, dict):
+            raise ValueError("query_params must be a dict")
         self._query_params: dict = query_params
         self._formatted_query: str = None
 
@@ -60,4 +66,5 @@ class OpenSearchQueryFormatter:
             "q=search&size=20"
         """
         self._formatted_query = "&".join([f"{k}={v}" for k, v in self._query_params.items()])
+        logger.debug(self._formatted_query)
         return self._formatted_query

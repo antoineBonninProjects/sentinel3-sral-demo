@@ -43,6 +43,7 @@ __all__ = ['EumdacConnector']
 
 import configparser
 from datetime import datetime, timedelta
+import logging
 import os
 import shutil
 import zipfile
@@ -55,6 +56,15 @@ import xarray as xr
 import zcollection
 
 from utils.singleton import SingletonMeta
+from utils.logging_utils import setup_module_logger
+
+logger = setup_module_logger(__name__)
+
+# Make some loggers less verbose
+logging.getLogger('asyncio').setLevel(logging.INFO)
+logging.getLogger('eumdac').setLevel(logging.INFO)
+logging.getLogger('fsspec.local').setLevel(logging.INFO)
+logging.getLogger('urllib3.connectionpool').setLevel(logging.INFO)
 
 
 class EumdacConnector(metaclass=SingletonMeta):
@@ -112,6 +122,9 @@ class EumdacConnector(metaclass=SingletonMeta):
         if (self._token is None) or (self._token.expiration < refresh_date):
             self._token = eumdac.AccessToken((self._consumer_key, self._consumer_secret))
             is_refreshed = True
+            logger.debug(
+                "Token has been refreshed and wii be valid until %s", self._token.expiration
+            )
 
         return is_refreshed
 
@@ -160,12 +173,14 @@ class EumdacConnector(metaclass=SingletonMeta):
 
         # open all datasets
         xr_ds_list: list[xr.Dataset] = []
+        logger.info("Loading every netcdf files to a xr.Dataset...")
         for dataset_file in netcdf_file_paths:
             ds: xr.Dataset = xr.open_dataset(dataset_file)
             ds.close()
             xr_ds_list.append(ds)
 
         # concat them along time_dimension to make  single write - index needs to be monotonic
+        logger.info("Concat datasets to a single distributed xr.Dataset...")
         combined_data: xr.Dataset = xr.concat(xr_ds_list, dim=time_dimension)
         combined_data = combined_data.sortby(time_dimension)
 
@@ -175,8 +190,10 @@ class EumdacConnector(metaclass=SingletonMeta):
         collection: zcollection.Collection = None
         try:
             collection = zcollection.open_collection(zarr_base_path, mode="w")
+            logger.debug("Using existing zcollection at %s", zarr_base_path)
         except ValueError:
             # ValueError is raised if collection is not found
+            logger.info("zcollection at %s not found, creating it", zarr_base_path)
             filesystem: fsspec.implementations.local.LocalFileSystem = fsspec.filesystem("file")
 
             collection = zcollection.create_collection(
@@ -187,6 +204,7 @@ class EumdacConnector(metaclass=SingletonMeta):
                 filesystem=filesystem,
             )
 
+        logger.info("Inserting data to the zarr collection at %s", zarr_base_path)
         collection.insert(zds)
         client.close()
 
@@ -207,11 +225,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :rtype: list[str]
         """
         os.makedirs(download_dir, exist_ok=True)
-
         products_batch = list(product_ids)
-        # If in local mode, process only a subset of the products for faster execution
-        if os.getenv("LOCAL_MODE", "1"):
-            products_batch = products_batch[::50]
 
         # Compute tasks in parallel across the cluster
         client = Client()
@@ -219,12 +233,14 @@ class EumdacConnector(metaclass=SingletonMeta):
             dask.delayed(self._process_product)(collection_id, str(product), download_dir)
             for product in products_batch
         ]
+        logger.info("Downloading products...")
         dask.compute(*delayed_tasks)
         client.close()
 
         downloaded_folders = [
             os.path.join(download_dir, product_id) for product_id in products_batch
         ]
+        logger.debug("Downloaded products folders: %s", downloaded_folders)
         return downloaded_folders
 
     def _download_product(
@@ -249,6 +265,7 @@ class EumdacConnector(metaclass=SingletonMeta):
             zip_path: str = os.path.join(download_dir, fsrc.name)
             with open(zip_path, mode='wb') as fdst:
                 shutil.copyfileobj(fsrc, fdst)
+                logger.debug("Downloading %s", zip_path)
 
         return zip_path
 
@@ -267,6 +284,7 @@ class EumdacConnector(metaclass=SingletonMeta):
             for file in zip_ref.namelist():
                 if file.startswith(product_id):
                     zip_ref.extract(file, download_dir)
+                    logger.debug("Unzipping %s", file)
 
         return unzip_dir
 
@@ -279,6 +297,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :rtype: None
         """
         os.remove(zip_path)
+        logger.debug("Deleting %s", zip_path)
 
     def _process_product(self, collection_id: str, product_id: str, download_dir: str) -> None:
         """
