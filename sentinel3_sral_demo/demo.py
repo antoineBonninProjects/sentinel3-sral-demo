@@ -4,6 +4,7 @@ Follow README.md to setup your env.
 
 Run this script with:
 > python -m sentinel3_sral_demo.demo
+a
 """
 
 import os
