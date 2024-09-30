@@ -1,10 +1,54 @@
 # sentinel3-sral-demo
 
-This code aims at demonstrating how to download and store Sentinel3 EUMETSAT products to a partitionned Zarr collection.
+### Project overview
 
-The data is fetched via [EUDMAC](https://anaconda.org/eumetsat/eumdac) library.
+This project aims at demonstrating how to download and store Sentinel3 EUMETSAT products to a partitionned Zarr collection. The data is fetched via [EUDMAC](https://anaconda.org/eumetsat/eumdac) library and this code is highly inspired by EUMETSAT [learn-sral](https://gitlab.eumetsat.int/eumetlab/oceans/ocean-training/sensors/learn-sral) repo.
 
-This code is highly inspired by EUMETSAT [learn-sral](https://gitlab.eumetsat.int/eumetlab/oceans/ocean-training/sensors/learn-sral) repo.
+Data is downloaded from EUMETSAT collection *ID(EO:EUM:DAT:0415): SRAL Level 2 Altimetry Global - Sentinel-3*.
+
+This collection contains files (products) of Sentinel-3A and 3B of Level2 processed altimetry Data. Each product contains 3 datasets: reduced_measurement.nc (1Hz), standard_measurement.nc (20hz) and enhanced_measurement.nc (20Hz + additional data) NetCDF datasets.
+
+Because I distribute code on a single computer for now, I only process _reduced_measurement.nc_ datasets of each product.
+
+The dataset represents Level2 data derived from along track SRAL altimeter:
+
+* Sea surface height: _ssha_01_ku_ and _ssha_01_plrm_ku_
+* Wind speed: _wind_speed_alt_01_ku_ and _wind_speed_alt_01_plrm_ku_
+* Significant wave height: _swh_ocean_01_ku_ and _swh_ocean_01_plrm_ku_
+* Geophysical corrections: _iono_cor_alt_01_ku_ / _iono_cor_alt_filtered_01_ku_ / ...
+* and many other data
+
+Because it is along track measurements, the only dimension is time: _time_01_ (1Hz).
+_lon_01_ and _lat_01_ coordinates are related to time, as the satellites moves along its orbit.
+
+### Objectives
+
+I focused on producing a simple code, where I try to implement generic python project good practices:
+
+| Quality Focus Area     | Lib or Tool      | Fail_Under                |
+|------------------------|------------------|---------------------------|
+| Test Driven Development | pre-commit hooks | All hooks must pass        |
+| Coverage               | pytest-cov       | 100% coverage              |
+| Unit Tests             | pytest           | All tests OK               |
+| Linter                 | pylint           | 100% score (default rules) |
+| Formatter              | black            | Non-compliant formatting (default rules)  |
+
+This is primarly a way for me to discover new technos:
+
+* zarr
+* zcollections
+* dask
+* xarray
+
+Finally it allows me to have a practical overview of spatial altimetry datasets, and to understand what data can be derived from these spatial altimeters.
+
+**Note**: in its current state, it is far from production ready:
+
+* not packaged or Dockerized
+* script is not really a job: no checkpointing
+* no CICD
+* no monitoring
+* no clustering / no distributed storage
 
 ## Python dependencies
 
@@ -33,6 +77,14 @@ Antoine Bonnin
 **[RUNME](https://runme.dev/)**
 
 Nice tool to render and execute shell commands from markdown in VSCode. Install the [VSCode extension](https://docs.runme.dev/getting-started/vscode).
+
+Here is the readme without the VSCode extension:
+
+<img src="./ressources/img/without_runme.png" alt="without runme" style="width:80%"/>
+
+The VSCode extension allows you to execute shell code from your .md file:
+
+<img src="./ressources/img/with_runme.png" alt="with runme" style="width:80%"/>
 
 ### Required tools
 
@@ -118,3 +170,55 @@ cp .envrc.tpl .envrc
 # Load environment variables to your shell
 source .envrc
 ```
+
+Use **[direnv](https://direnv.net/)**:
+
+- loads environment variables declared in .envrc files when you enter `cd` the directory containing the .envrc (or its sub directories)
+- unloads environment variables when you `cd` out of this folder
+
+## Usage
+
+### Execution
+
+```sh {"id":"01J9200BMAX0X0ANYCCTW7AVC3"}
+# In the conda environment, with dependencies installed
+# And all prerequisites followed
+python -m pipelines.load_sen3_sral_data_to_zarr
+```
+
+### Quality
+
+Quality is ensured by pre-commit hooks (see file *pre-commit-config.yaml*). But each quality tool can also be run on demand.
+
+```sh {"id":"01J9207TSCB7YRF3P2QB6G8FRE"}
+# manual Pytests with coverage
+python -m pytest tests --cov=. --cov-report=term-missing
+```
+
+```sh {"id":"01J9208TSEMJQ1269V8GY60YN1"}
+# Linter
+pylint .
+```
+
+```sh {"id":"01J920BK7X9AHJC7A36D5JWP1Z"}
+# Formatting
+black .
+```
+
+#### Code structure
+
+The python code is splitted in:
+
+* **pipelines**: package to store tasks. For now there is only one task.
+* **src**: custom code for our project. Splitted in packages, by logical function.
+* **utils**: various generic tools. Typically code that would be part of libraries that we install via our conda channel or via git submodules.
+
+## TODO
+
+* pass arguments to the script: date range for files fetching
+* set constants via env variables instead of in code
+* package the code
+* build a docker image of this project, even if it not really a job in its current state
+* setup a local kubernetes cluster (minikube) and spawn:
+   * a minimal dask cluster: 1 master / 1 executor
+   * a minimal distributed file system (NFS, OpenEBS, or Cephi): 1 node on local setup to store the zarr collection
