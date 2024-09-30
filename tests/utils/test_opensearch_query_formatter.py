@@ -2,7 +2,20 @@
 """
 Test for module utils.opensearch_query_formatter
 """
+
+import pytest
+
 from utils.opensearch_query_formatter import OpenSearchQueryFormatter
+
+
+def test_get_property_formatted_query():
+    """
+    Test the property getter for formatted_query.
+    """
+    formatter = OpenSearchQueryFormatter({"q": "test"})
+    assert formatter.formatted_query is None
+    formatter.format()
+    assert formatter.formatted_query == "q=test"
 
 
 def test_format_single_query_param():
@@ -11,6 +24,14 @@ def test_format_single_query_param():
     """
     formatter = OpenSearchQueryFormatter({"q": "test"})
     assert formatter.format() == "q=test"
+
+
+def test_format_single_invalid_param():
+    """
+    Test formatting with an invalid query parameter (type list unsupported).
+    """
+    with pytest.raises(ValueError, match="query_params must be a dict"):
+        OpenSearchQueryFormatter(["lists", "are", "invalid"])
 
 
 def test_format_multiple_query_params():

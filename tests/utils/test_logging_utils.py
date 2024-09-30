@@ -9,18 +9,6 @@ import pytest
 from utils.logging_utils import setup_root_logging, setup_module_logger, _list_my_loggers
 
 
-# Mocking the logging module for testing
-def clear_loggers():
-    """Clears loggers after each test to ensure isolation."""
-    yield
-    for name in list(logging.Logger.manager.loggerDict.keys()):
-        del logging.Logger.manager.loggerDict[name]
-
-    # Clear the handlers of the root logger after each test
-    root_logger = logging.getLogger()
-    root_logger.handlers.clear()
-
-
 def test_setup_root_logging_no_env_var():
     """
     Test root logging setup when environment variable LOG_LEVEL is not set.

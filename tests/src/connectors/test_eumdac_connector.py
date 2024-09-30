@@ -11,11 +11,12 @@ from datetime import (
 
 import os
 import pytest
+import tempfile
+import shutil
 from unittest import mock
 import xarray as xr
 import zcollection
 import zipfile
-
 
 from src.connectors.eumdac_connector import EumdacConnector
 
@@ -31,10 +32,23 @@ class MockDataStore:
     def __init__(self, token):
         self.token = token
 
+    def get_product(self, product_id, collection_id):
+        # Return a mocked product
+        return MockProduct(name='product.zip')
 
+
+# Mock eumdac product
+class MockProduct:
+    def __init__(self, name):
+        self.name = name
+
+    def open(self):
+        pass
+
+
+# Your existing fixtures
 @pytest.fixture
 def mock_config(mocker):
-    # Mock the configparser to return specific consumer key/secret
     mocker.patch("configparser.RawConfigParser.read", return_value=None)
     mock_config = mocker.patch("configparser.RawConfigParser.get")
     mock_config.side_effect = lambda section, key: {
@@ -45,13 +59,11 @@ def mock_config(mocker):
 
 @pytest.fixture
 def mock_token(mocker):
-    # Mock the eumdac AccessToken creation
     mocker.patch("eumdac.AccessToken", side_effect=MockAccessToken)
 
 
 @pytest.fixture
 def mock_datastore(mocker):
-    # Mock the eumdac DataStore creation
     mocker.patch("eumdac.DataStore", side_effect=MockDataStore)
 
 
@@ -248,6 +260,41 @@ def test_download_products(connector, mocker):
 
     # Assert the correct folder structure is returned
     assert downloaded_folders == [f"downloads/product{x}" for x in range(100)]
+
+
+def test_download_product(connector):
+    """
+    Test the download_product. For now it only tests that we open the Product object and that
+    shutil.copyfileobj() is called. Test is a bit light.
+    Note: Complete this test
+    """
+    download_dir = tempfile.mkdtemp()  # Create a temporary download directory
+    collection_id = 'collection123'
+    product_id = 'product456'
+
+    # Simulate a temporary file for the product to be downloaded
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file.write(b'Test product content.')
+    temp_file.close()
+
+    # Patch the open method used within the function to simulate product download
+    with mock.patch('builtins.open', mock.mock_open()) as mocked_open:
+        with mock.patch('shutil.copyfileobj') as mock_copy:
+            # Mock the file open behavior for the MockProduct
+            with mock.patch.object(MockProduct, 'open', return_value=open(temp_file.name, 'rb')):
+                # Call the _download_product method on the connector
+                result = connector._download_product(collection_id, product_id, download_dir)
+
+                # Expected zip path
+                expected_zip_path = os.path.join(download_dir, 'product.zip')
+
+                # Assertions
+                mocked_open.assert_called()  # Check the file is opened for writing
+                mock_copy.assert_called_once()  # Ensure the copyfileobj was called
+
+    # Clean up
+    shutil.rmtree(download_dir)  # Remove the temporary download directory
+    os.remove(temp_file.name)
 
 
 def test_unzip_product(connector, mocker):
