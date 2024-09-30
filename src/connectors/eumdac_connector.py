@@ -213,7 +213,11 @@ class EumdacConnector(metaclass=SingletonMeta):
         client.close()
 
     def download_products(
-        self, collection_id: str, product_ids: list[str], download_dir: str
+        self,
+        collection_id: str,
+        product_ids: list[str],
+        download_dir: str,
+        measurements_filename: str = "reduced_measurement.nc",
     ) -> list[str]:
         """
         Downloads a list of products from the given collection, unzips them,
@@ -225,6 +229,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :param str collection_id: The ID of the product collection to download from.
         :param list[str] product_ids: A list of product IDs to be downloaded.
         :param str download_dir: The directory where the downloaded products will be saved.
+        :param str measurements_filename: The measurement file to extract.
         :return: The list of downloaded folders
         :rtype: list[str]
         """
@@ -233,7 +238,9 @@ class EumdacConnector(metaclass=SingletonMeta):
         # Compute tasks in parallel across the cluster
         client: dask.distributed.Client = Client()
         delayed_tasks = [
-            dask.delayed(self._process_product)(collection_id, str(product), download_dir)
+            dask.delayed(self._process_product)(
+                collection_id, str(product), download_dir, measurements_filename
+            )
             for product in product_ids
         ]
         logger.info("Downloading products...")
@@ -270,20 +277,28 @@ class EumdacConnector(metaclass=SingletonMeta):
 
         return zip_path
 
-    def _unzip_product(self, zip_path: str, product_id: str, download_dir: str) -> str:
+    def _unzip_product(
+        self,
+        zip_path: str,
+        product_id: str,
+        download_dir: str,
+        measurements_filename: str = "reduced_measurement.nc",
+    ) -> str:
         """
         Unzips a downloaded product in the specified directory.
 
         :param str zip_path: The path to the downloaded zip file.
         :param object product: The product object used to identify files within the zip archive.
         :param str download_dir: The directory where the unzipped product files will be saved.
+        :param str measurements_filename: The measurement file to extract.
         :return: the directory where the product is unziped
         :rtype: str
         """
         unzip_dir: str = os.path.join(download_dir, product_id)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for file in zip_ref.namelist():
-                if file.startswith(product_id):
+                # Only extract measurements_filename file
+                if file.startswith(product_id) and measurements_filename in file:
                     zip_ref.extract(file, download_dir)
                     logger.debug("Unzipping %s", file)
 
@@ -300,7 +315,13 @@ class EumdacConnector(metaclass=SingletonMeta):
         os.remove(zip_path)
         logger.debug("Deleting %s", zip_path)
 
-    def _process_product(self, collection_id: str, product_id: str, download_dir: str) -> str:
+    def _process_product(
+        self,
+        collection_id: str,
+        product_id: str,
+        download_dir: str,
+        measurements_filename: str = "reduced_measurement.nc",
+    ) -> str:
         """
         Orchestrates the download, unzip, and removal of a single product.
 
@@ -308,11 +329,14 @@ class EumdacConnector(metaclass=SingletonMeta):
         :param str product_id: The ID of the product to be processed.
         :param str download_dir: The directory where the product will be downloaded,
         unzipped, and processed.
+        :param str measurements_filename: The measurement file to extract.
         :return: the directory where the product is unziped
         :rtype: str
         """
         zip_path: str = self._download_product(collection_id, product_id, download_dir)
-        unzip_dir: str = self._unzip_product(zip_path, product_id, download_dir)
+        unzip_dir: str = self._unzip_product(
+            zip_path, product_id, download_dir, measurements_filename
+        )
         self._remove_zip(zip_path)
 
         return unzip_dir

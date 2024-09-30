@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # Download files - benefits of dask parallelization
     logger.info("Downloading products (dask parallelized)...")
     downloaded_folders: list[str] = connector.download_products(
-        COLLECTION_ID, product_ids, download_dir
+        COLLECTION_ID, product_ids, download_dir, MEASUREMENTS_FILENAME
     )
 
     # Store files to partitionned zarr files

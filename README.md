@@ -35,6 +35,7 @@ The focus is on producing simple code that implements good practices for generic
 | Unit Tests             | pytest               | All tests OK              |
 | Linter                 | pylint               | 100% score (default rules)|
 | Formatter              | black                | Non-compliant formatting   |
+| Static type checks     | mypy                 | NEVER FAILS : Not configured in pre-commit hooks   |
 
 This project primarily serves as a means for me to discover new technologies, including:
 
@@ -52,6 +53,11 @@ Ultimately, it provides a practical overview of spatial altimetry datasets and h
 - No CI/CD
 - No monitoring
 - No clustering or distributed storage
+- No regression tests
+- pytests are a bit limitted:
+    - lack of edge case testing
+    - lack of call parameters tests on methods and functions
+    - but 100% code covering
 
 ## License
 

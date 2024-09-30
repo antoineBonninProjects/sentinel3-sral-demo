@@ -300,6 +300,8 @@ def test_download_product(connector):
 def test_unzip_product(connector, mocker):
     """
     Test the _unzip_product method.
+    - Test to unzip a zip containing the measurement_filename
+    - Test to unzip a zip not containing the measurement_filename
     """
     zip_path = "./file.zip"
     product_id = "product1"
@@ -309,15 +311,21 @@ def test_unzip_product(connector, mocker):
     with zipfile.ZipFile(zip_path, 'w') as zip_file:
         zip_file.writestr(f"{product_id}/file.txt", b"Sample content")
 
-    connector._unzip_product(zip_path, product_id, download_dir)
-
-    # Verify the file has been extracted
+    # Verify the file has been extracted, when measurement_filename is found
+    connector._unzip_product(zip_path, product_id, download_dir, measurements_filename="file.txt")
     extracted_path = os.path.join(download_dir, product_id, 'file.txt')
     assert os.path.exists(extracted_path)
+    os.remove(extracted_path)  # cleanup
+
+    # Verify the file has not been extracted, when measurement_filename is found
+    connector._unzip_product(
+        zip_path, product_id, download_dir, measurements_filename="unexisting_file.txt"
+    )
+    extracted_path = os.path.join(download_dir, product_id, 'unexisting_file.txt')
+    assert not os.path.exists(extracted_path)
 
     # Clean up
     os.remove(zip_path)
-    os.remove(extracted_path)
 
 
 def test_remove_zip(connector, mocker):
@@ -339,6 +347,9 @@ def test_remove_zip(connector, mocker):
 def test_process_product(connector, mocker):
     """
     Test the _process_product method.
+    - check private methods are called
+    - check default measurements_filename value
+    - check override default measurements_filename value
     """
     mocker.patch.object(connector, '_download_product', return_value="./file.zip")
     mocker.patch.object(connector, '_unzip_product', return_value="./unzipped")
@@ -348,11 +359,27 @@ def test_process_product(connector, mocker):
     product_id = "product1"
     download_dir = "downloads"
 
+    # Check that all steps were called, with default measurements_filename
     result = connector._process_product(collection_id, product_id, download_dir)
-
-    # Check that all steps were called
     connector._download_product.assert_called_once_with(collection_id, product_id, download_dir)
-    connector._unzip_product.assert_called_once_with("./file.zip", product_id, download_dir)
+    connector._unzip_product.assert_called_once_with(
+        "./file.zip", product_id, download_dir, 'reduced_measurement.nc'
+    )
+    connector._remove_zip.assert_called_once_with("./file.zip")
+
+    # prepare next sub test: reset mock counters
+    connector._download_product.reset_mock()
+    connector._unzip_product.reset_mock()
+    connector._remove_zip.reset_mock()
+
+    # Check that all steps were called, with overriden measurements_filename
+    result = connector._process_product(
+        collection_id, product_id, download_dir, measurements_filename='other.nc'
+    )
+    connector._download_product.assert_called_once_with(collection_id, product_id, download_dir)
+    connector._unzip_product.assert_called_once_with(
+        "./file.zip", product_id, download_dir, 'other.nc'
+    )
     connector._remove_zip.assert_called_once_with("./file.zip")
 
     assert result == "./unzipped"
