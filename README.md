@@ -1,10 +1,22 @@
 # sentinel3-sral-demo
 
-This code aims at demonstrating how to make basic manipulations over Sentinel3 satellite Altimeter data (SRAL).
+This code aims at demonstrating how to download and store Sentinel3 EUMETSAT products to a partitionned Zarr collection.
 
-It uses [EUDMAC](https://anaconda.org/eumetsat/eumdac) library to fetch Sentinel3 data.
+The data is fetched via [EUDMAC](https://anaconda.org/eumetsat/eumdac) library.
 
 This code is highly inspired by EUMETSAT [learn-sral](https://gitlab.eumetsat.int/eumetlab/oceans/ocean-training/sensors/learn-sral) repo.
+
+## Python dependencies
+
+This project relies on several key libraries to provide functionality for accessing and manipulating data. Below is a summary of the primary dependencies:
+
+| Library      | Description                                                                                                                                          | Documentation Link                                              |
+|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| EUDMAC       | Provides simple access to EUMETSAT data from a variety of satellite missions.                                                                     | [EUDMAC](https://anaconda.org/eumetsat/eumdac)                |
+| Xarray       | A comprehensive tool for working with labeled multi-dimensional data in Python.                                                                   | [Xarray](https://docs.xarray.dev/en/stable/)                  |
+| Dask         | A Python library for parallel and distributed computing. It integrates well with Xarray and zcollections.                                          | [Dask](https://docs.dask.org/en/stable/)                      |
+| Zarr         | A file storage format for chunked, compressed, N-dimensional arrays based on an open-source specification.                                         | [Zarr](https://zarr.readthedocs.io/en/stable/)                |
+| Zcollections  | A Python library in the Pangeo ecosystem for manipulating data partitioned into collections of Zarr groups. Primarily used for writing partitioned data and querying easily with filters. | [Zcollections](https://zcollection.readthedocs.io/en/latest/api.html) |
 
 ## License
 
