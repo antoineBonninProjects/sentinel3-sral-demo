@@ -3,8 +3,7 @@ The main for this project.
 Follow README.md to setup your env.
 
 Run this script with:
-> python -m sentinel3_sral_demo.demo
-a
+> python -m tasks.load_sen3_sral_to_zarr
 """
 
 import os
