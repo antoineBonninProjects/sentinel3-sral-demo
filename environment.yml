@@ -9,6 +9,7 @@ dependencies:
   - conda-forge::pytest-mock=3.14.0
   - conda-forge::pytest-cov=5.0.0
   - conda-forge::black=24.8.0
+  - conda-forge::mypy=1.11.2
   - conda-forge::netcdf4=1.7.1
   - conda-forge::pylint=3.3.1
   - conda-forge::pre-commit=3.8.0

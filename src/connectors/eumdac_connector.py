@@ -131,9 +131,11 @@ class EumdacConnector(metaclass=SingletonMeta):
         return is_refreshed
 
     @property
-    def datastore(self) -> None:
+    def datastore(self) -> eumdac.datastore.DataStore:
         """
-        Gets _datastore attribute and consider token expiration
+        Property bound to _datastore attribute
+        :return: the _datastore attribute
+        :rtype: eumdac.datastore.DataStore
         """
         is_token_refreshed: bool = self.refresh_token()
 
@@ -244,9 +246,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         logger.debug("Downloaded products folders: %s", downloaded_folders)
         return downloaded_folders
 
-    def _download_product(
-        self, collection_id: str, product_id: str, download_dir: str
-    ) -> tuple[str, object]:
+    def _download_product(self, collection_id: str, product_id: str, download_dir: str) -> str:
         """
         Downloads a single product from the collection and saves it as a zip file in the
         download directory.
@@ -270,15 +270,15 @@ class EumdacConnector(metaclass=SingletonMeta):
 
         return zip_path
 
-    def _unzip_product(self, zip_path: str, product_id: str, download_dir: str) -> None:
+    def _unzip_product(self, zip_path: str, product_id: str, download_dir: str) -> str:
         """
         Unzips a downloaded product in the specified directory.
 
         :param str zip_path: The path to the downloaded zip file.
         :param object product: The product object used to identify files within the zip archive.
         :param str download_dir: The directory where the unzipped product files will be saved.
-        :return: None
-        :rtype: None
+        :return: the directory where the product is unziped
+        :rtype: str
         """
         unzip_dir: str = os.path.join(download_dir, product_id)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
@@ -300,7 +300,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         os.remove(zip_path)
         logger.debug("Deleting %s", zip_path)
 
-    def _process_product(self, collection_id: str, product_id: str, download_dir: str) -> None:
+    def _process_product(self, collection_id: str, product_id: str, download_dir: str) -> str:
         """
         Orchestrates the download, unzip, and removal of a single product.
 
@@ -308,8 +308,8 @@ class EumdacConnector(metaclass=SingletonMeta):
         :param str product_id: The ID of the product to be processed.
         :param str download_dir: The directory where the product will be downloaded,
         unzipped, and processed.
-        :return: None
-        :rtype: None
+        :return: the directory where the product is unziped
+        :rtype: str
         """
         zip_path: str = self._download_product(collection_id, product_id, download_dir)
         unzip_dir: str = self._unzip_product(zip_path, product_id, download_dir)

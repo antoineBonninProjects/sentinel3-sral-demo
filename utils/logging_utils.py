@@ -131,7 +131,7 @@ def setup_module_logger(module_name: str, log_level: int = None) -> logging.Logg
     logger: logging.Logger = logging.getLogger(module_name)
 
     # Set the logging level
-    log_level: int = log_level if log_level else default_log_level
-    logger.setLevel(log_level)
+    module_log_level: int = log_level if log_level else default_log_level
+    logger.setLevel(module_log_level)
 
     return logger

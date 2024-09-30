@@ -29,7 +29,7 @@ download_dir: str = os.path.join(os.getcwd(), DOWNLOAD_DIR)
 if __name__ == "__main__":
     logger.info("Connecting EUMDAC datastore...")
     connector: EumdacConnector = EumdacConnector()
-    datastore: EumdacConnector.datastore = connector.datastore
+    datastore: eumdac.datastore.DataStore = connector.datastore
 
     # Query a few data files for Sentinel3A and 3B SRAL (Level2 data) for 2024-09-20
     opensearch_query: str = OpenSearchQueryFormatter(
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     # Store files to partitionned zarr files
     # Partition by day (with zcollection) - to be tuned depending on data use / volumetry
     logger.info("Persisting data in a partitionned zarr collection...")
-    netcdf_file_paths: str = [
+    netcdf_file_paths: list[str] = [
         os.path.join(folder, MEASUREMENTS_FILENAME) for folder in downloaded_folders
     ]
     partition_handler: zcollection.partitioning.Partitioning = zcollection.partitioning.Date(
