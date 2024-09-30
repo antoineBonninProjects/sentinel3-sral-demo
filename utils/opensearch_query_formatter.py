@@ -1,10 +1,20 @@
 """
-This module provides utilities for formatting query parameters into a URL-encoded string format
-that can be used in OpenSearch queries.
+This module provides utilities for formatting query parameters into a URL-encoded string 
+suitable for OpenSearch queries.
 
 The `OpenSearchQueryFormatter` class takes a dictionary of query parameters and converts them 
 into a URL-encoded query string.
+
+Classes:
+    OpenSearchQueryFormatter -- Formats query parameters into a URL-encoded string for OpenSearch.
+
+Usage:
+    Example:
+        formatter = OpenSearchQueryFormatter({"q": "test", "size": 10})
+        query_string = formatter.format()  # Returns "q=test&size=10"
 """
+
+__all__ = ['OpenSearchQueryFormatter']
 
 
 class OpenSearchQueryFormatter:

@@ -12,6 +12,8 @@ Classes:
     SingletonMeta -- Metaclass to enforce the Singleton pattern.
 """
 
+__all__ = ['SingletonMeta']
+
 
 class SingletonMeta(type):
     """
