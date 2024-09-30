@@ -198,12 +198,18 @@ python -m pytest tests --cov=. --cov-report=term-missing
 
 ```sh {"id":"01J9208TSEMJQ1269V8GY60YN1"}
 # Linter
-pylint .
+python -m pylint .
 ```
 
 ```sh {"id":"01J920BK7X9AHJC7A36D5JWP1Z"}
 # Formatting
 black .
+```
+
+```sh {"id":"01J928Y2ZZ4KYGTHW8MDDZSDVD"}
+# Static type checks - not set as a pre-commit hooks
+# 'PEP 484 prohibits implicit Optional' is annoying -> leads to very verbose code
+python -m mymy .
 ```
 
 ### Code structure
@@ -217,7 +223,6 @@ The Python code is organized into:
 ## TODO
 
 - Pass arguments to the script: date range for file fetching
-- Set constants via environment variables instead of hardcoding in the code
 - Package the code
 - Build a Docker image of this project, even if it is not structured as a job in its current state
 - Set up a local Kubernetes cluster (Minikube) and deploy:

@@ -19,11 +19,11 @@ setup_root_logging()
 
 logger: logging.Logger = setup_module_logger(__name__)
 
-SEN3_SRAL_LVL2_COLLECTION_ID: str = "EO:EUM:DAT:0415"
-DOWNLOAD_DIR: str = "/tmp/products"
-MEASUREMENTS_FILENAME: str = "reduced_measurement.nc"
-ZARR_BASE_PATH: str = "/tmp/sen3_sral"
-TIME_DIMENSION: str = "time_01"
+COLLECTION_ID: str = os.getenv("COLLECTION_ID", "EO:EUM:DAT:0415")
+DOWNLOAD_DIR: str = os.getenv("DOWNLOAD_DIR", "/tmp/products")
+MEASUREMENTS_FILENAME: str = os.getenv("MEASUREMENTS_FILENAME", "reduced_measurement.nc")
+ZARR_BASE_PATH: str = os.getenv("ZARR_BASE_PATH", "/tmp/sen3_sral")
+INDEX_DIMENSION: str = os.getenv("INDEX_DIMENSION", "time_01")
 download_dir: str = os.path.join(os.getcwd(), DOWNLOAD_DIR)
 
 if __name__ == "__main__":
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # Query a few data files for Sentinel3A and 3B SRAL (Level2 data) for 2024-09-20
     opensearch_query: str = OpenSearchQueryFormatter(
         query_params={
-            "pi": SEN3_SRAL_LVL2_COLLECTION_ID,
+            "pi": COLLECTION_ID,
             "dtstart": "2024-09-23T00:20:00Z",
             "dtend": "2024-09-25T00:10:00Z",
         }
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # Download files - benefits of dask parallelization
     logger.info("Downloading products (dask parallelized)...")
     downloaded_folders: list[str] = connector.download_products(
-        SEN3_SRAL_LVL2_COLLECTION_ID, product_ids, download_dir
+        COLLECTION_ID, product_ids, download_dir
     )
 
     # Store files to partitionned zarr files
@@ -62,9 +62,9 @@ if __name__ == "__main__":
         os.path.join(folder, MEASUREMENTS_FILENAME) for folder in downloaded_folders
     ]
     partition_handler: zcollection.partitioning.Partitioning = zcollection.partitioning.Date(
-        (TIME_DIMENSION,), resolution='M'
+        (INDEX_DIMENSION,), resolution='M'
     )
     connector.save_to_zarr(
-        netcdf_file_paths, ZARR_BASE_PATH, partition_handler, time_dimension=TIME_DIMENSION
+        netcdf_file_paths, ZARR_BASE_PATH, partition_handler, time_dimension=INDEX_DIMENSION
     )
     logger.info("Job done")
