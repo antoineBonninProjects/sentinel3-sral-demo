@@ -4,9 +4,10 @@
 
 This project demonstrates how to download and store Sentinel-3 EUMETSAT products into a partitioned Zarr collection. Data is fetched via the [EUMDAC](https://anaconda.org/eumetsat/eumdac) library, and the code is heavily inspired by the EUMETSAT [learn-sral](https://gitlab.eumetsat.int/eumetlab/oceans/ocean-training/sensors/learn-sral) repository.
 
-Data is downloaded from the EUMETSAT collection **ID(EO:EUM:DAT:0415): SRAL Level 2 Altimetry Global - Sentinel-3**. 
+Data is downloaded from the EUMETSAT collection **ID(EO:EUM:DAT:0415): SRAL Level 2 Altimetry Global - Sentinel-3**.
 
 This collection contains files (products) from Sentinel-3A and 3B with Level 2 processed altimetry data. Each product includes three datasets:
+
 - `reduced_measurement.nc` (1Hz)
 - `standard_measurement.nc` (20Hz)
 - `enhanced_measurement.nc` (20Hz + additional data)
@@ -14,6 +15,7 @@ This collection contains files (products) from Sentinel-3A and 3B with Level 2 p
 For now, I only process the `reduced_measurement.nc` datasets from each product as I distribute code on a single computer.
 
 The dataset represents Level 2 data derived from along-track SRAL altimeter measurements, which include:
+
 - Sea Surface Height: `ssha_01_ku` and `ssha_01_plrm_ku`
 - Wind Speed: `wind_speed_alt_01_ku` and `wind_speed_alt_01_plrm_ku`
 - Significant Wave Height: `swh_ocean_01_ku` and `swh_ocean_01_plrm_ku`
@@ -35,6 +37,7 @@ The focus is on producing simple code that implements good practices for generic
 | Formatter              | black                | Non-compliant formatting   |
 
 This project primarily serves as a means for me to discover new technologies, including:
+
 - Zarr
 - Zcollections
 - Dask
@@ -43,6 +46,7 @@ This project primarily serves as a means for me to discover new technologies, in
 Ultimately, it provides a practical overview of spatial altimetry datasets and helps me understand the data that can be derived from these spatial altimeters.
 
 **Note**: In its current state, this project is far from production-ready:
+
 - Not packaged or Dockerized
 - Script is not structured as a job: no checkpointing
 - No CI/CD
@@ -180,7 +184,7 @@ Use **[direnv](https://direnv.net/)**:
 ```sh {"id":"01J9200BMAX0X0ANYCCTW7AVC3"}
 # In the conda environment, with dependencies installed
 # And all prerequisites followed
-python -m pipelines.load_sen3_sral_data_to_zarr
+python -m tasks.persist_sen3_sral_data_to_zarr
 ```
 
 ### Quality
@@ -201,6 +205,7 @@ pylint .
 # Formatting
 black .
 ```
+
 ### Code structure
 
 The Python code is organized into:

@@ -3,21 +3,23 @@ The main for this project.
 Follow README.md to setup your env.
 
 Run this script with:
-> python -m tasks.load_sen3_sral_to_zarr
+> python -m tasks.persist_sen3_sral_data_to_zarr
 """
 
+import logging
 import os
 import zcollection
 
+import eumdac.product
 from src.connectors.eumdac_connector import EumdacConnector
 from utils.logging_utils import setup_root_logging, setup_module_logger
 from utils.opensearch_query_formatter import OpenSearchQueryFormatter
 
 setup_root_logging()
 
-logger = setup_module_logger(__name__)
+logger: logging.Logger = setup_module_logger(__name__)
 
-SEN3_SRAL_LVL2_COLLECTION_ID = "EO:EUM:DAT:0415"
+SEN3_SRAL_LVL2_COLLECTION_ID: str = "EO:EUM:DAT:0415"
 DOWNLOAD_DIR: str = "/tmp/products"
 MEASUREMENTS_FILENAME: str = "reduced_measurement.nc"
 ZARR_BASE_PATH: str = "/tmp/sen3_sral"
@@ -30,7 +32,7 @@ if __name__ == "__main__":
     datastore: EumdacConnector.datastore = connector.datastore
 
     # Query a few data files for Sentinel3A and 3B SRAL (Level2 data) for 2024-09-20
-    opensearch_query = OpenSearchQueryFormatter(
+    opensearch_query: str = OpenSearchQueryFormatter(
         query_params={
             "pi": SEN3_SRAL_LVL2_COLLECTION_ID,
             "dtstart": "2024-09-23T00:20:00Z",
@@ -38,8 +40,8 @@ if __name__ == "__main__":
         }
     ).format()
     logger.info("Listing EUMDAC products matching filters '%s'", opensearch_query)
-    products = datastore.opensearch(query=opensearch_query)
-    product_ids = [str(x) for x in products]
+    products: eumdac.product.Product = datastore.opensearch(query=opensearch_query)
+    product_ids: list[str] = [str(x) for x in products]
     # If in local mode, process only a subset of the products for faster execution
     if os.getenv("LOCAL_MODE", "1"):
         logger.info("Local mode: processing every 50th product to debug faster")
@@ -49,7 +51,7 @@ if __name__ == "__main__":
 
     # Download files - benefits of dask parallelization
     logger.info("Downloading products (dask parallelized)...")
-    downloaded_folders = connector.download_products(
+    downloaded_folders: list[str] = connector.download_products(
         SEN3_SRAL_LVL2_COLLECTION_ID, product_ids, download_dir
     )
 
@@ -59,7 +61,9 @@ if __name__ == "__main__":
     netcdf_file_paths: str = [
         os.path.join(folder, MEASUREMENTS_FILENAME) for folder in downloaded_folders
     ]
-    partition_handler = zcollection.partitioning.Date((TIME_DIMENSION,), resolution='M')
+    partition_handler: zcollection.partitioning.Partitioning = zcollection.partitioning.Date(
+        (TIME_DIMENSION,), resolution='M'
+    )
     connector.save_to_zarr(
         netcdf_file_paths, ZARR_BASE_PATH, partition_handler, time_dimension=TIME_DIMENSION
     )

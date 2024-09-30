@@ -24,7 +24,7 @@ class SingletonMeta(type):
           # class implem
     """
 
-    _instances = {}
+    _instances: object = {}
 
     def __call__(cls, *args, **kwargs):
         """
@@ -32,6 +32,6 @@ class SingletonMeta(type):
         the returned instance.
         """
         if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
+            instance: object = super().__call__(*args, **kwargs)
             cls._instances[cls] = instance
         return cls._instances[cls]

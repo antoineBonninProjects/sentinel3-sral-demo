@@ -50,7 +50,9 @@ import zipfile
 
 import dask
 from dask.distributed import Client
+import dask.distributed
 import eumdac
+import eumdac.product
 import fsspec
 import xarray as xr
 import zcollection
@@ -58,7 +60,7 @@ import zcollection
 from utils.singleton import SingletonMeta
 from utils.logging_utils import setup_module_logger
 
-logger = setup_module_logger(__name__)
+logger: logging.Logger = setup_module_logger(__name__)
 
 # Make some loggers less verbose
 logging.getLogger('asyncio').setLevel(logging.INFO)
@@ -99,7 +101,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         """
         Load credentials from .ini file
         """
-        config_file = os.path.expanduser(f"~/.eumdac/{self._credentials_filename}")
+        config_file: str = os.path.expanduser(f"~/.eumdac/{self._credentials_filename}")
 
         # Secrets are in [myprofile] section from .ini file.
         # Use RawConfigParser to diable interpolation (credentials may contain '%' chars)
@@ -117,7 +119,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :rtype: bool
         """
         is_refreshed: bool = False
-        refresh_date = datetime.now() + self._refresh_token_margin_mn
+        refresh_date: datetime = datetime.now() + self._refresh_token_margin_mn
 
         if (self._token is None) or (self._token.expiration < refresh_date):
             self._token = eumdac.AccessToken((self._consumer_key, self._consumer_secret))
@@ -166,7 +168,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :return: None
         :rtype: None
         """
-        client = Client()
+        client: dask.distributed.Client = Client()
 
         if netcdf_file_paths == []:
             raise ValueError("netcdf_file_paths cannot be empty")
@@ -225,20 +227,19 @@ class EumdacConnector(metaclass=SingletonMeta):
         :rtype: list[str]
         """
         os.makedirs(download_dir, exist_ok=True)
-        products_batch = list(product_ids)
 
         # Compute tasks in parallel across the cluster
-        client = Client()
+        client: dask.distributed.Client = Client()
         delayed_tasks = [
             dask.delayed(self._process_product)(collection_id, str(product), download_dir)
-            for product in products_batch
+            for product in product_ids
         ]
         logger.info("Downloading products...")
         dask.compute(*delayed_tasks)
         client.close()
 
-        downloaded_folders = [
-            os.path.join(download_dir, product_id) for product_id in products_batch
+        downloaded_folders: list[str] = [
+            os.path.join(download_dir, product_id) for product_id in product_ids
         ]
         logger.debug("Downloaded products folders: %s", downloaded_folders)
         return downloaded_folders
@@ -256,7 +257,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :return: The path to the downloaded zip file
         :rtype: str
         """
-        selected_product = self.datastore.get_product(
+        selected_product: eumdac.product.Product = self.datastore.get_product(
             product_id=product_id, collection_id=collection_id
         )
 
@@ -279,7 +280,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         :return: None
         :rtype: None
         """
-        unzip_dir = os.path.join(download_dir, product_id)
+        unzip_dir: str = os.path.join(download_dir, product_id)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for file in zip_ref.namelist():
                 if file.startswith(product_id):
@@ -310,8 +311,8 @@ class EumdacConnector(metaclass=SingletonMeta):
         :return: None
         :rtype: None
         """
-        zip_path = self._download_product(collection_id, product_id, download_dir)
-        unzip_dir = self._unzip_product(zip_path, product_id, download_dir)
+        zip_path: str = self._download_product(collection_id, product_id, download_dir)
+        unzip_dir: str = self._unzip_product(zip_path, product_id, download_dir)
         self._remove_zip(zip_path)
 
         return unzip_dir

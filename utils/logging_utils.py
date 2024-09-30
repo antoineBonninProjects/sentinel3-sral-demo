@@ -15,7 +15,7 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
 
-MY_MODULES_PREFIX_LIST = ["src", "utils"]
+MY_MODULES_PREFIX_LIST: list[str] = ["src", "utils"]
 
 
 def _list_my_loggers() -> list[str]:
@@ -30,10 +30,10 @@ def _list_my_loggers() -> list[str]:
     """
 
     # Get all loggers from the logger manager
-    logger_dict = logging.Logger.manager.loggerDict
+    logger_dict: logging.Logger.manager.loggerDict = logging.Logger.manager.loggerDict
 
     # List loggers derived from the root logger that match the specified prefixes
-    own_module_loggers = [
+    own_module_loggers: list[str] = [
         name
         for name, logger in logger_dict.items()
         if (
@@ -89,7 +89,7 @@ def setup_root_logging(log_file='/tmp/app.log', when='midnight', backup_count=5)
     logger.addHandler(handler)
 
     # Set up console logging
-    console_handler = logging.StreamHandler()
+    console_handler: logging.Handler = logging.StreamHandler()
     console_handler.setLevel(default_log_level)  # Use the same default level for console
     console_handler.setFormatter(formatter)
 
@@ -98,7 +98,7 @@ def setup_root_logging(log_file='/tmp/app.log', when='midnight', backup_count=5)
     # Modules who have been imported before root handler setup, have a logger
     # defined prior to root logger setup. So we have to update them to make sure
     # they use root logger handlers too.
-    my_loggers = [logging.getLogger(x) for x in _list_my_loggers()]
+    my_loggers: list[logging.Logger] = [logging.getLogger(x) for x in _list_my_loggers()]
     for my_logger in my_loggers:
         # Delete existing handlers and add root logger handlers
         for h in my_logger.handlers:
@@ -128,10 +128,10 @@ def setup_module_logger(module_name: str, log_level: int = None) -> logging.Logg
     default_log_level: int = getattr(logging, default_log_level_str, logging.INFO)
 
     # Create a logger for the specified module
-    logger = logging.getLogger(module_name)
+    logger: logging.Logger = logging.getLogger(module_name)
 
     # Set the logging level
-    log_level = log_level if log_level else default_log_level
+    log_level: int = log_level if log_level else default_log_level
     logger.setLevel(log_level)
 
     return logger

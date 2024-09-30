@@ -16,9 +16,10 @@ Usage:
 
 __all__ = ['OpenSearchQueryFormatter']
 
+import logging
 from .logging_utils import setup_module_logger
 
-logger = setup_module_logger(__name__)
+logger: logging.Logger = setup_module_logger(__name__)
 
 
 class OpenSearchQueryFormatter:
