@@ -89,6 +89,8 @@ pre-commit install
 
 First you need to create an account on [EUMETSAT eoportal](https://eoportal.eumetsat.int/cas/login)
 
+Then, get your credentials from [your Profile](https://api.eumetsat.int/api-key/)
+
 This is required to have an easy access to Sentinel3 data.
 
 Then save your credentials to `~/.eumdac/credentials.ini`
@@ -101,4 +103,18 @@ cat <<EOF > ~/.eumdac/credentials.ini
 consumer_key=my_key
 consumer_secret=my_secret
 EOF
+```
+
+**Environment variables**
+
+```sh {"id":"01J91SMJW9PYFP2SAGYD38CPK2"}
+# .envrc is not to be commited - in .gitignore
+cp .envrc.tpl .envrc
+
+# Edit variables in .envrc as you like
+```
+
+```sh {"id":"01J91SPEZF3S06DKMG6JFJN97C"}
+# Load environment variables to your shell
+source .envrc
 ```
