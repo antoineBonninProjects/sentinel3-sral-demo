@@ -4,7 +4,7 @@
 
 This project demonstrates how to download and store Sentinel-3 EUMETSAT products into a partitioned Zarr collection. Data is fetched via the [EUMDAC](https://anaconda.org/eumetsat/eumdac) library, and the code is heavily inspired by the EUMETSAT [learn-sral](https://gitlab.eumetsat.int/eumetlab/oceans/ocean-training/sensors/learn-sral) repository.
 
-Data is downloaded from the EUMETSAT collection **ID(EO:EUM:DAT:0415): SRAL Level 2 Altimetry Global - Sentinel-3**.
+By default, data is downloaded from the EUMETSAT collection **ID(EO:EUM:DAT:0415): SRAL Level 2 Altimetry Global - Sentinel-3**, but this can be changed.
 
 This collection contains files (products) from Sentinel-3A and 3B with Level 2 processed altimetry data. Each product includes three datasets:
 
@@ -49,15 +49,15 @@ Ultimately, it provides a practical overview of spatial altimetry datasets and h
 **Note**: In its current state, this project is far from production-ready:
 
 - Not packaged or Dockerized
-- Script is not structured as a job: no checkpointing
+- Script is not structured as a job: no checkpointing to download only new files
 - No CI/CD
 - No monitoring
 - No clustering or distributed storage
 - No regression tests
 - pytests are a bit limitted:
-    - lack of edge case testing
-    - lack of call parameters tests on methods and functions
-    - but 100% code covering
+   - lack of edge case testing
+   - lack of call parameters tests on methods and functions
+   - but 100% code covering
 
 ## License
 
@@ -165,6 +165,15 @@ EOF
 ```
 
 #### Environment variables
+
+| Variable Name           | Utility                                                   | Default Value                   |
+|-------------------------|-----------------------------------------------------------|---------------------------------|
+| `LOG_LEVEL`             | Defines the logging level for the task and its modules.   | `INFO`                          |
+| `COLLECTION_ID`         | EUMDAC ID of the data collection being processed.          | `EO:EUM:DAT:0415`               |
+| `DOWNLOAD_DIR`          | Directory where downloaded EUMDAC products are stored.     | `/tmp/products`                 |
+| `MEASUREMENTS_FILENAME` | Filename for the reduced measurement data inside the EUMDAC products ZIP.                 | `reduced_measurement.nc`        |
+| `ZARR_BASE_PATH`        | Path where the Zarr collection will be saved.              | `/tmp/sen3_sral`                |
+| `INDEX_DIMENSION`       | Dimension to index the data for partitioning in Zarr.      | `time_01`                       |
 
 ```sh {"id":"01J91SMJW9PYFP2SAGYD38CPK2"}
 # .envrc is not to be commited - in .gitignore
