@@ -1,8 +1,8 @@
 """
 This module contains the ZarrProcessor class, which provides functionality to convert
-and save multiple NetCDF datasets into a partitioned Zarr collection. The processor also
-supports reading, concatenating, and filtering Zarr datasets. This is designed to work with
-distributed computing using Dask and a local file system via fsspec.
+and save multiple NetCDF datasets into a partitioned (with one index dimension) Zarr collection. 
+The processor also supports reading, concatenating, and filtering Zarr datasets. 
+This is designed to work with distributed computing using Dask and a local file system via fsspec.
 
 In the future, ZarrProcessor could implement methods to query zarr data and load them to xr.Dataset.
 
@@ -36,8 +36,9 @@ class ZarrProcessor:
     A processor class that manages partitioned Zarr collections from NetCDF files.
 
     This class is responsible for creating a Zarr collection if it doesn't exist,
-    and saving NetCDF datasets into the collection. The ZarrProcessor also manages
-    the partitioning of datasets for efficient data storage and retrieval.
+    and saving NetCDF datasets with one index dimension into the collection.
+    The ZarrProcessor also manages the partitioning of datasets for efficient data
+    storage and retrieval.
 
     In the future, ZarrProcessor could implement methods to query zarr data and
     load them to xr.Dataset.

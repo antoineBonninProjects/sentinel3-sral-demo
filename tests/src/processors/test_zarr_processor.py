@@ -40,6 +40,13 @@ def setup_zarr_test(mocker):
     return mock_ds1, mock_ds2, mock_zarr_ds, mock_collection, mock_combined_ds
 
 
+def test_collection_property(processor):
+    """
+    Test that getter on the _collection property.
+    """
+    assert processor.collection is None
+
+
 def test_save_to_zarr_nominal(processor, setup_zarr_test):
     """
     Test the save_to_zarr method.
@@ -66,6 +73,8 @@ def test_save_to_zarr_nominal(processor, setup_zarr_test):
     assert xr.concat.call_count == 1
     assert xr.concat.call_args[0][0] == list(setup_zarr_test[:2])  # mock_ds1, mock_ds2
     assert xr.concat.call_args[1] == {'dim': processor.index_dimension}
+
+    assert processor.collection is not None
 
 
 def test_save_to_zarr_no_netcdf_files(processor):
