@@ -167,14 +167,24 @@ EOF
 
 #### Environment variables
 
+# Project environment variables
+| Variable Name           | Utility                                                                    | Default Value                   |
+|-------------------------|----------------------------------------------------------------------------|---------------------------------|
+| `LOG_LEVEL`             | Defines the logging level for the task and its modules.                    | `INFO`                          |
+| `COLLECTION_ID`         | EUMDAC ID of the data collection being processed.                          | `EO:EUM:DAT:0415`               |
+| `DOWNLOAD_DIR`          | Directory where downloaded EUMDAC products are stored.                     | `/tmp/products`                 |
+| `MEASUREMENTS_FILENAME` | Filename for the reduced measurement data inside the EUMDAC products ZIP.  | `reduced_measurement.nc`        |
+| `ZARR_BASE_PATH`        | Path where the Zarr collection will be saved.                              | `/tmp/sen3_sral`                |
+| `INDEX_DIMENSION`       | Dimension to index the data for partitioning in Zarr.                      | `time_01`                       |
+
+# CICD environment variables
+
+**Note**: Storing credentials unencrypted on disk is not a good practice
+
 | Variable Name           | Utility                                                   | Default Value                   |
 |-------------------------|-----------------------------------------------------------|---------------------------------|
-| `LOG_LEVEL`             | Defines the logging level for the task and its modules.   | `INFO`                          |
-| `COLLECTION_ID`         | EUMDAC ID of the data collection being processed.          | `EO:EUM:DAT:0415`               |
-| `DOWNLOAD_DIR`          | Directory where downloaded EUMDAC products are stored.     | `/tmp/products`                 |
-| `MEASUREMENTS_FILENAME` | Filename for the reduced measurement data inside the EUMDAC products ZIP.                 | `reduced_measurement.nc`        |
-| `ZARR_BASE_PATH`        | Path where the Zarr collection will be saved.              | `/tmp/sen3_sral`                |
-| `INDEX_DIMENSION`       | Dimension to index the data for partitioning in Zarr.      | `time_01`                       |
+| `DOCKERHUB_USERNAME`    | Your dockerhub username, to upload the Docker image       | `abonnin33`                     |
+| `DOCKERHUB_PASSWORD`    | Your dockerhub password, to upload the Docker image       |                                 |
 
 ```sh {"id":"01J91SMJW9PYFP2SAGYD38CPK2"}
 # .envrc is not to be commited - in .gitignore
@@ -211,7 +221,7 @@ direnv allow # In the folder containing .envrc, asked after each modification of
 
 ## Usage
 
-### Execution
+### Local Execution
 
 ```sh {"id":"01J9200BMAX0X0ANYCCTW7AVC3"}
 # In the conda environment, with dependencies installed
@@ -268,6 +278,34 @@ tree -a .
 
 ```
 
+### Build and release Docker image to Dockerhub
+
+The image for this project is available in my DockerHub Repositories: [sentinel3-sral-demo](https://hub.docker.com/repository/docker/abonnin33/sentinel3-sral-demo)
+
+If you want to build the image yourself, follow the section below.
+
+```sh {"id":"01J94WNGWCNZ88JBX7VFG7EC0M"}
+# Build
+source .envrc
+make build
+```
+
+```sh {"id":"01J94XGW61WYZJKHDCEWKP3D5B"}
+# Run code from Docker image - maps your local ~/.eumdac/ folder to the container via a volume
+source .envrc
+make run
+```
+
+```sh {"id":"01J94WSH88VNJX1M9T4CBSC3QY"}
+# Upload - need to setup Dockerhub credentials in your .envrc
+source .envrc
+make upload
+```
+
+### K8s cluster execution
+
+WIP.
+
 ### Quality
 
 Quality is ensured by pre-commit hooks (see the pre-commit-config.yaml file). However, each quality tool can also be run on demand:
@@ -295,6 +333,7 @@ python -m mymy .
 
 ```sh {"id":"01J94K5E9C9Y6C1WB4P4KCCCHM"}
 # Sphinx doc generation
+sphinx-apidoc -o docs/source .
 cd docs; make html; cd -
 ```
 
@@ -307,15 +346,18 @@ firefox docs/build/html/index.html
 
 The Python code is organized into:
 
-- pipelines: A package to store tasks. Currently, it contains only one task.
+- tasks: A package to store tasks. Currently, it contains only one task.
 - src: Custom code for our project, organized into packages by logical function.
 - utils: Various generic tools, typically code that would be part of libraries installed via our conda channel or through git submodules.
+
+More information available in the Sphinx doc.
 
 ## TODO
 
 - Pass arguments to the script: date range for file fetching
-- Package the code
-- Build a Docker image of this project, even if it is not structured as a job in its current state
+- Build a Docker image of this project, to be used by k8s config for our HPC dask cluster
+- Package the code as a .whl: mandatory if we use K8s to run dask jobs to HPC, the Dockerfile built from sources is sufficient. But a .whl is elegant too. The only problem is non pip dependencies like eumdac conda lib.
 - Set up a local Kubernetes cluster (Minikube) and deploy:
    - A minimal Dask cluster: 1 master / 1 executor
    - A minimal distributed file system (NFS, OpenEBS, or Ceph): 1 node on local setup to store the Zarr collection
+- benchmark Read/Write performance for different partitionning and chunking strategies. For read it can only be made with a real use-case.
