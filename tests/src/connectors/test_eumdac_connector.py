@@ -40,7 +40,7 @@ class MockProduct:
     def __init__(self, name):
         self.name = name
 
-    def open(self):
+    def open(self):  # pragma: no cover
         pass
 
 

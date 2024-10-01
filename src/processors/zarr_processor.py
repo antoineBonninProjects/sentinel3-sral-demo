@@ -21,7 +21,7 @@ Dependencies:
 import logging
 
 import dask
-from dask.distributed import Client
+import dask.distributed
 import fsspec
 import xarray as xr
 import zcollection
@@ -135,7 +135,10 @@ class ZarrProcessor:
         :return: None
         :rtype: None
         """
-        client: dask.distributed.Client = Client()
+
+        # Use a local cluster, and threads only
+        cluster: dask.distributed.LocalCluster = dask.distributed.LocalCluster(processes=False)
+        client: dask.distributed.Client = dask.distributed.Client(cluster)
 
         if netcdf_file_paths == []:
             raise ValueError("netcdf_file_paths cannot be empty")
@@ -159,4 +162,6 @@ class ZarrProcessor:
 
         logger.info("Inserting data to the zarr collection at %s", self.zarr_collection_path)
         collection.insert(zds)
+
         client.close()
+        cluster.close()

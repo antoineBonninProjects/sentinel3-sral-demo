@@ -49,7 +49,6 @@ import shutil
 import zipfile
 
 import dask
-from dask.distributed import Client
 import dask.distributed
 import eumdac
 import eumdac.product
@@ -164,8 +163,10 @@ class EumdacConnector(metaclass=SingletonMeta):
         """
         os.makedirs(download_dir, exist_ok=True)
 
-        # Compute tasks in parallel across the cluster
-        client: dask.distributed.Client = Client()
+        # Use a local cluster, and threads only
+        cluster: dask.distributed.LocalCluster = dask.distributed.LocalCluster(processes=False)
+        client: dask.distributed.Client = dask.distributed.Client(cluster)
+
         delayed_tasks = [
             dask.delayed(self._process_product)(
                 collection_id, str(product), download_dir, measurements_filename
@@ -174,7 +175,9 @@ class EumdacConnector(metaclass=SingletonMeta):
         ]
         logger.info("Downloading products...")
         dask.compute(*delayed_tasks)
+
         client.close()
+        cluster.close()
 
         downloaded_folders: list[str] = [
             os.path.join(download_dir, product_id) for product_id in product_ids
