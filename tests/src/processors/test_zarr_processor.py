@@ -47,6 +47,64 @@ def test_collection_property(processor):
     assert processor.collection is None
 
 
+@mock.patch("zcollection.create_collection")
+@mock.patch("zcollection.open_collection")
+def test_open_or_create_collection_existing_collection(
+    mock_open_collection, mock_create_collection, processor
+):
+    """
+    Test the case where the collection already exists.
+    """
+    # Mock the zcollection open_collection function to return a collection object
+    mock_collection = mock.Mock(spec=zcollection.Collection)
+    mock_open_collection.return_value = mock_collection
+
+    # Call the _open_or_create_collection method
+    dataset = mock.Mock(spec=zcollection.Dataset)
+    collection = processor._open_or_create_collection(dataset)
+
+    # Assert that open_collection was called with the correct arguments
+    mock_open_collection.assert_called_once_with("/path/to/zarr", mode="w")
+
+    # Assert that create_collection was never called (since collection already exists)
+    mock_create_collection.assert_not_called()
+
+    # Assert that the collection returned is the mocked one
+    assert collection == mock_collection
+
+
+@mock.patch("zcollection.create_collection")
+@mock.patch(
+    "zcollection.open_collection", side_effect=ValueError
+)  # Simulate ValueError when collection not found
+@mock.patch("fsspec.filesystem")
+def test_open_or_create_collection_new_collection(
+    mock_fsspec, mock_open_collection, mock_create_collection, processor
+):
+    """
+    Test the case where the collection does not exist and is created.
+    """
+    # Mock the zcollection create_collection function to return a collection object
+    mock_new_collection = mock.Mock(spec=zcollection.Collection)
+    mock_create_collection.return_value = mock_new_collection
+
+    # Call the _open_or_create_collection method
+    dataset = mock.Mock(spec=zcollection.Dataset)
+    collection = processor._open_or_create_collection(dataset)
+
+    # Assert that open_collection was called and raised a ValueError
+    mock_open_collection.assert_called_once_with("/path/to/zarr", mode="w")
+
+    # Assert that create_collection was called with the right arguments
+    mock_create_collection.assert_called_once_with(
+        axis="time",
+        ds=dataset,
+        partition_handler=processor.partition_handler,
+        partition_base_dir="/path/to/zarr",
+        filesystem=mock_fsspec.return_value,
+    )
+
+
 def test_save_to_zarr_nominal(processor, setup_zarr_test):
     """
     Test the save_to_zarr method.
