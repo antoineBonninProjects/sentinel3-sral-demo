@@ -12,7 +12,7 @@ This collection contains files (products) from Sentinel-3A and 3B with Level 2 p
 - `standard_measurement.nc` (20Hz)
 - `enhanced_measurement.nc` (20Hz + additional data)
 
-For now, I only process the `reduced_measurement.nc` datasets from each product as I distribute code on a single computer.
+For now, I only process the `reduced_measurement.nc` datasets from each product as I distribute code on a single computer. EUMDAC Products matching the openSearch query filters are downloaded and only `reduced_measurement.nc` datasets are extracted. Then the extracted datasets are persisted to a zarr collection, partitioned by month.
 
 The dataset represents Level 2 data derived from along-track SRAL altimeter measurements, which include:
 
@@ -36,6 +36,7 @@ The focus is on producing simple code that implements good practices for generic
 | Linter                 | pylint               | 100% score (default rules)|
 | Formatter              | black                | Non-compliant formatting   |
 | Static type checks     | mypy                 | NEVER FAILS : Not configured in pre-commit hooks   |
+| Code Documentation     | sphinx               | NEVER FAILS : Not configured in pre-commit hooks   |
 
 This project primarily serves as a means for me to discover new technologies, including:
 
@@ -199,12 +200,13 @@ sudo apt install direnv
 eval "$(direnv hook bash)" >> ~/.bashrc
 source ~/.bashrc
 direnv allow # In the folder containing .envrc, asked after each modification of .envrc
+```
 
+```sh {"id":"01J94H9KJ0YPPYB57MWS0M76XN"}
 # or in zsh
 eval "$(direnv hook zsh)" >> ~/.zshrc
 source ~/.zshrc
 direnv allow # In the folder containing .envrc, asked after each modification of .envrc
-
 ```
 
 ## Usage
@@ -215,6 +217,55 @@ direnv allow # In the folder containing .envrc, asked after each modification of
 # In the conda environment, with dependencies installed
 # And all prerequisites followed
 python -m tasks.persist_sen3_sral_data_to_zarr
+```
+
+```sh
+# Here is the zarr collection, partitioned by month on variable time_01
+tree -a .
+.
+├── year=2024
+│   └── month=09
+│       ├── alt_01
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── dist_coast_01
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── gpd_source_flag_01
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── gpd_wet_tropo_cor_01
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+...     ... 
+│       ├── wind_speed_alt_01_ku
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── wind_speed_alt_01_plrm_ku
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── wind_speed_alt_2p_01_ku
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── wind_speed_alt_2p_01_plrm_ku
+│       │   ├── 0
+│       │   ├── .zarray
+│       │   └── .zattrs
+│       ├── .zattrs
+│       ├── .zgroup
+│       └── .zmetadata
+└── .zcollection
+
+67 directories, 199 files
+(arg: 4)
+
 ```
 
 ### Quality
@@ -240,6 +291,16 @@ black .
 # Static type checks - not set as a pre-commit hooks
 # 'PEP 484 prohibits implicit Optional' is annoying -> leads to very verbose code
 python -m mymy .
+```
+
+```sh {"id":"01J94K5E9C9Y6C1WB4P4KCCCHM"}
+# Sphinx doc generation
+cd docs; make html; cd -
+```
+
+```sh {"id":"01J94MC96S53JH6NVS7ZKP4FNC"}
+# Open doc
+firefox docs/build/html/index.html
 ```
 
 ### Code structure

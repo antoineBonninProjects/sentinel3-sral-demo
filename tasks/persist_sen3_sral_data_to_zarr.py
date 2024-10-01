@@ -1,9 +1,70 @@
 """
-The main for this project.
-Follow README.md to setup your env.
+Main entry point for the Sentinel3-SRAL project.
 
-Run this script with:
-> python -m tasks.persist_sen3_sral_data_to_zarr
+This script facilitates the downloading and processing of satellite product data from 
+the EUMDAC API. Follow the setup instructions outlined in the `README.md` file to 
+configure the environment.
+
+.. note::
+
+    The following environment variables are used by the script, along with their 
+    default values:
+
+    +-----------------------+-----------------------+-------------------------------------+
+    | Variable Name         | Default Value         | Description                         |
+    +-----------------------+-----------------------+-------------------------------------+
+    | LOG_LEVEL             | INFO                  | Sets the logging level for the      |
+    |                       |                       | application.                        |
+    +-----------------------+-----------------------+-------------------------------------+
+    | COLLECTION_ID         | EO:EUM:DAT:0415       | Specifies the product collection    |
+    |                       |                       | to query.                           |
+    +-----------------------+-----------------------+-------------------------------------+
+    | DOWNLOAD_DIR          | /tmp/products         | Directory where downloaded products |
+    |                       |                       | will be stored.                     |
+    +-----------------------+-----------------------+-------------------------------------+
+    | MEASUREMENTS_FILENAME | reduced_measurement.nc| Name of the NetCDF file to extract  |
+    |                       |                       | from the downloaded ZIP.            |
+    +-----------------------+-----------------------+-------------------------------------+
+    | ZARR_BASE_PATH        | /tmp/sen3_sral        | Base path for persisting data to    |
+    |                       |                       | a Zarr collection.                  |
+    +-----------------------+-----------------------+-------------------------------------+
+    | INDEX_DIMENSION       | time_01               | Dimension along which the data will |
+    |                       |                       | be partitioned.                     |
+    +-----------------------+-----------------------+-------------------------------------+
+
+Functionality
+-------------
+
+1. **Product Querying**: Queries the EUMDAC API for products within the specified 
+   `COLLECTION_ID` using a predefined OpenSearch query.
+
+2. **Data Downloading**: For each product that matches the filters, downloads the 
+   data to the `DOWNLOAD_DIR`. Extracts the NetCDF file named 
+   `MEASUREMENTS_FILENAME` from the downloaded ZIP files.
+
+3. **Data Processing**: Constructs a dataset from all downloaded data. Persists 
+   the dataset to a Zarr collection located at `ZARR_BASE_PATH`, partitioned along 
+   the specified `INDEX_DIMENSION`.
+
+4. **Dask Integration**: Utilizes Dask for distributed processing, both for 
+   downloading and executing basic xarray operations. Configured in LocalCluster 
+   mode with threading for efficiency.
+
+Future Enhancements
+--------------------
+
+Future releases will introduce a checkpointing mechanism, allowing the script to 
+automatically download new files based on the latest available data, rather than 
+relying on a hardcoded date range.
+
+Usage
+-----
+
+To run this script, execute the following command:
+
+.. code-block:: bash
+
+    python -m tasks.persist_sen3_sral_data_to_zarr
 """
 
 import logging

@@ -13,6 +13,9 @@ dependencies:
   - conda-forge::netcdf4=1.7.1
   - conda-forge::pylint=3.3.1
   - conda-forge::pre-commit=3.8.0
+  - conda-forge::sphinx=6.0.0
+  - conda-forge::sphinx-autodoc-typehints=1.11.0
+  - conda-forge::sphinx_rtd_theme=1.2.0
   - conda-forge::xarray
   - conda-forge::zarr=2.18.3
   - conda-forge::zcollection=2024.2.0
