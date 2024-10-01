@@ -192,6 +192,21 @@ Use **[direnv](https://direnv.net/)**:
 - Loads environment variables declared in .envrc files when you cd into the directory containing the .envrc (or its subdirectories).
 - Unloads environment variables when you cd out of that folder.
 
+```sh {"id":"01J94H1KMMN5EGRVHW1DD5JBDJ"}
+sudo apt install direnv
+
+# Do not forget to configure the hook to your .bashrc
+eval "$(direnv hook bash)" >> ~/.bashrc
+source ~/.bashrc
+direnv allow # In the folder containing .envrc, asked after each modification of .envrc
+
+# or in zsh
+eval "$(direnv hook zsh)" >> ~/.zshrc
+source ~/.zshrc
+direnv allow # In the folder containing .envrc, asked after each modification of .envrc
+
+```
+
 ## Usage
 
 ### Execution
