@@ -9,4 +9,8 @@ upload:
 	@docker push $${DOCKERHUB_USERNAME}/sentinel3-sral-demo:latest;
 
 run:
-	@docker run -it -v ~/.eumdac:/root/.eumdac $${DOCKERHUB_USERNAME}/sentinel3-sral-demo:latest
+	@docker run -it \
+		-v ~/.eumdac:/root/.eumdac \
+		-v $$ZARR_BASE_PATH:$$ZARR_BASE_PATH \
+		-v $$DOWNLOAD_DIR:$$DOWNLOAD_DIR \
+		$${DOCKERHUB_USERNAME}/sentinel3-sral-demo:latest

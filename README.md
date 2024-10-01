@@ -291,7 +291,9 @@ make build
 ```
 
 ```sh {"id":"01J94XGW61WYZJKHDCEWKP3D5B"}
-# Run code from Docker image - maps your local ~/.eumdac/ folder to the container via a volume
+# Run code from Docker image
+# map your local ~/.eumdac/ folder to the container via a volume (credentials sharing)
+# use volumes for storage folders (DOWNLOAD_DIR / ZARR_BASE_PATH)
 source .envrc
 make run
 ```
@@ -344,11 +346,10 @@ firefox docs/build/html/index.html
 
 ### Code structure
 
-The Python code is organized into:
-
-- tasks: A package to store tasks. Currently, it contains only one task.
-- src: Custom code for our project, organized into packages by logical function.
-- utils: Various generic tools, typically code that would be part of libraries installed via our conda channel or through git submodules.
+The Python code is splitted in packages:
+- **tasks**: A package to store tasks. Currently, it contains only one task.
+- **src**: Custom code for our project, organized into packages by logical function.
+- **utils**: Various generic tools, typically code that would be part of libraries installed via our conda channel or through git submodules.
 
 More information available in the Sphinx doc.
 
