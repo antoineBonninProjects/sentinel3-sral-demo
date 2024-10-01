@@ -53,9 +53,6 @@ from dask.distributed import Client
 import dask.distributed
 import eumdac
 import eumdac.product
-import fsspec
-import xarray as xr
-import zcollection
 
 from utils.singleton import SingletonMeta
 from utils.logging_utils import setup_module_logger
@@ -143,74 +140,6 @@ class EumdacConnector(metaclass=SingletonMeta):
             self._datastore = eumdac.DataStore(self._token)
 
         return self._datastore
-
-    def save_to_zarr(
-        self,
-        netcdf_file_paths: list[str],
-        zarr_base_path: str,
-        zarr_partition_handler: zcollection.partitioning.Partitioning,
-        time_dimension: str,
-    ) -> None:
-        """
-        Save multiple NetCDF datasets to a Zarr collection.
-
-        This method reads NetCDF files from the specified paths, concatenates them
-        along the specified time dimension, and saves the resulting dataset into
-        a Zarr collection. If the collection does not exist, it will be created.
-
-        :param list[str] netcdf_file_paths:
-            A list of file paths to the NetCDF datasets to be saved.
-        :param str zarr_base_path:
-            The base path where the Zarr collection will be stored.
-        :param zcollection.partitioning.Partitioning zarr_partition_handler:
-            The partitioning strategy to use for the Zarr collection.
-        :param str time_dimension:
-            The name of the dimension along which the datasets will be concatenated.
-
-        :return: None
-        :rtype: None
-        """
-        client: dask.distributed.Client = Client()
-
-        if netcdf_file_paths == []:
-            raise ValueError("netcdf_file_paths cannot be empty")
-
-        # open all datasets
-        xr_ds_list: list[xr.Dataset] = []
-        logger.info("Loading every netcdf files to a xr.Dataset...")
-        for dataset_file in netcdf_file_paths:
-            ds: xr.Dataset = xr.open_dataset(dataset_file)
-            ds.close()
-            xr_ds_list.append(ds)
-
-        # concat them along time_dimension to make  single write - index needs to be monotonic
-        logger.info("Concat datasets to a single distributed xr.Dataset...")
-        combined_data: xr.Dataset = xr.concat(xr_ds_list, dim=time_dimension)
-        combined_data = combined_data.sortby(time_dimension)
-
-        zds: zcollection.Dataset = zcollection.Dataset.from_xarray(combined_data)
-
-        # Create zcollection Collection if not existing yet, otherwise use existing
-        collection: zcollection.Collection = None
-        try:
-            collection = zcollection.open_collection(zarr_base_path, mode="w")
-            logger.debug("Using existing zcollection at %s", zarr_base_path)
-        except ValueError:
-            # ValueError is raised if collection is not found
-            logger.info("zcollection at %s not found, creating it", zarr_base_path)
-            filesystem: fsspec.implementations.local.LocalFileSystem = fsspec.filesystem("file")
-
-            collection = zcollection.create_collection(
-                axis=time_dimension,
-                ds=zds,
-                partition_handler=zarr_partition_handler,
-                partition_base_dir=zarr_base_path,
-                filesystem=filesystem,
-            )
-
-        logger.info("Inserting data to the zarr collection at %s", zarr_base_path)
-        collection.insert(zds)
-        client.close()
 
     def download_products(
         self,

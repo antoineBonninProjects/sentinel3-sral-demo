@@ -12,6 +12,7 @@ import zcollection
 
 import eumdac.product
 from src.connectors.eumdac_connector import EumdacConnector
+from src.processors.zarr_processor import ZarrProcessor
 from utils.logging_utils import setup_root_logging, setup_module_logger
 from utils.opensearch_query_formatter import OpenSearchQueryFormatter
 
@@ -64,7 +65,9 @@ if __name__ == "__main__":
     partition_handler: zcollection.partitioning.Partitioning = zcollection.partitioning.Date(
         (INDEX_DIMENSION,), resolution='M'
     )
-    connector.save_to_zarr(
-        netcdf_file_paths, ZARR_BASE_PATH, partition_handler, time_dimension=INDEX_DIMENSION
+
+    zarr_processor: ZarrProcessor = ZarrProcessor(
+        ZARR_BASE_PATH, partition_handler, index_dimension=INDEX_DIMENSION
     )
+    zarr_processor.netcdf_2_zarr(netcdf_file_paths)
     logger.info("Job done")
