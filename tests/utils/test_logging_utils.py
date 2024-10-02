@@ -6,7 +6,54 @@ import os
 import logging
 from unittest.mock import patch
 import pytest
-from utils.logging_utils import setup_root_logging, setup_module_logger, _list_my_loggers
+import socket
+from utils.logging_utils import (
+    _ContextFilter,
+    setup_root_logging,
+    setup_module_logger,
+    _list_my_loggers,
+)
+
+
+@pytest.fixture
+def logger_with_filter():
+    """
+    Fixture to set up a logger with the ContextFilter.
+    """
+    logger = logging.getLogger('test_logger')
+    logger.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(ip)s - %(message)s')
+    handler.setFormatter(formatter)
+
+    ctx_filter = _ContextFilter()
+    handler.addFilter(ctx_filter)
+
+    logger.addHandler(handler)
+
+    return logger
+
+
+def test_context_filter_ip(logger_with_filter, monkeypatch):
+    """
+    Test that the ContextFilter sets the correct IP in the log record.
+    """
+
+    test_ip = '192.168.1.1'
+
+    def mock_gethostbyname(hostname):
+        return test_ip
+
+    monkeypatch.setattr(socket, 'gethostbyname', mock_gethostbyname)
+
+    # Create a log record
+    record = logger_with_filter.makeRecord(
+        'test_logger', logging.INFO, 'test_file.py', 10, 'This is a test message.', None, None
+    )
+
+    assert logger_with_filter.handlers[0].filters[0].filter(record) is True
+    assert record.ip == test_ip
 
 
 def test_setup_root_logging_no_env_var():

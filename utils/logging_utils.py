@@ -14,8 +14,8 @@ __all__ = ["setup_root_logging", "setup_module_logger"]
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
+import socket
 from typing import Optional
-
 
 MY_MODULES_PREFIX_LIST: list[str] = ["src", "utils"]
 
@@ -47,6 +47,36 @@ def _list_my_loggers() -> list[str]:
     return own_module_loggers
 
 
+class _ContextFilter(logging.Filter):
+    """
+    Custom filter to dynamically set IP address to logs.
+    Based on: https://docs.python.org/3/howto/logging-cookbook.html#filters-contextual
+
+    Relies on logging.Filter.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """
+        Does not filter any log. Instead, it gets the IP of the node running the
+        code and exposes it for the Logger Formatter.
+
+        :param logging.LogRecord record: the log record to update with IP address info
+        :return: True - it is a passing filter
+        :rtype: bool
+        """
+        record.ip = self.get_ip()
+        return True
+
+    def get_ip(self) -> str:
+        """
+        Returns the IP address of the node running the code.
+
+        :return: IP address as a string.
+        :rtype: str
+        """
+        return socket.gethostbyname(socket.gethostname())
+
+
 def setup_root_logging(log_file='/tmp/app.log', when='midnight', backup_count=5) -> None:
     """
     Set up the root logging configuration with time-based log rotation.
@@ -75,14 +105,20 @@ def setup_root_logging(log_file='/tmp/app.log', when='midnight', backup_count=5)
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
+    # Set up ContextFilter
+    ctx_filter: _ContextFilter = _ContextFilter()
+
     # Set up the handlers, formatters, log level
     handler: logging.FileHandler = TimedRotatingFileHandler(
         log_file, when=when, backupCount=backup_count
     )
     formatter: logging.Formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+        '%(asctime)s.%(msecs)03d %(levelname)-8s | %(ip)s PID:%(process)d TID:%(thread)d '
+        '| %(name)s %(funcName)s %(filename)s:%(lineno)3s | %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
     )
     handler.setFormatter(formatter)
+    handler.addFilter(ctx_filter)
 
     # Set up the root logger
     logger: logging.Logger = logging.getLogger()
