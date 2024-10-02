@@ -55,6 +55,7 @@ Ultimately, it provides a practical overview of spatial altimetry datasets and h
 - No monitoring
 - No clustering or distributed storage
 - No regression tests
+- dask implem is minimal (no error handling / tasks failure recovery)
 - pytests are a bit limitted:
    - lack of edge case testing
    - lack of call parameters tests on methods and functions
@@ -249,7 +250,7 @@ python -m tasks.persist_sen3_sral_data_to_zarr
 2024-10-02 07:46:23 - __main__ - INFO - Job done
 ```
 
-```
+```ini {"id":"01J962WW36KGTDEHPGCZEEJ70B"}
 # Here is the zarr collection, partitioned by month on variable time_01
 tree -a .
 .
@@ -368,9 +369,10 @@ firefox docs/build/html/index.html
 
 - Pass arguments to the script: date range for file fetching
 - implement a checkpointing mechanism with a small DB, to only fetch new products from EUMDAC datastore
-- Package the code as a .whl: optional if we use K8s to run dask jobs to HPC, the Dockerfile built from sources is sufficient. 
-But a .whl is elegant too. The only problem is non pip dependencies like eumdac conda lib.
+- Package the code as a .whl: optional if we use K8s to run dask jobs to HPC, the Dockerfile built from sources is sufficient.
+   But a .whl is elegant too. The only problem is non pip dependencies like eumdac conda lib.
 - Set up a local Kubernetes cluster (Minikube) and deploy:
    - A minimal Dask cluster: 1 master / 1 executor
    - A minimal distributed file system (NFS, OpenEBS, or Ceph): 1 node on local setup to store the Zarr collection
+
 - benchmark Read/Write performance for different partitionning and chunking strategies. For read it can only be made with a real use-case.

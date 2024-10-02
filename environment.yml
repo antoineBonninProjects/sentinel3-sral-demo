@@ -5,6 +5,7 @@ channels:
   - eumetsat
 dependencies:
   - python=3.12
+  - conda-forge::bokeh=3.5.2
   - conda-forge::pytest=8.3
   - conda-forge::pytest-mock=3.14.0
   - conda-forge::pytest-cov=5.0.0
