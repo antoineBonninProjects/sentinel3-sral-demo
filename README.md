@@ -90,11 +90,11 @@ A nice tool to render and execute shell commands from markdown in VSCode. You ca
 
 Here is the README without the VSCode extension:
 
-![Without Runme](./ressources/img/without_runme.png)
+![Without Runme](./_static/img/without_runme.png)
 
 The VSCode extension allows you to execute shell code directly from your markdown file:
 
-![With Runme](./ressources/img/with_runme.png)
+![With Runme](./_static/img/with_runme.png)
 
 ### Required Tools
 
