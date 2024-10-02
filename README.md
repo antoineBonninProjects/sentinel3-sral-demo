@@ -230,6 +230,25 @@ direnv allow # In the folder containing .envrc, asked after each modification of
 python -m tasks.persist_sen3_sral_data_to_zarr
 ```
 
+```sh {"id":"01J95WG8WDBVS95M05Q50TRCR1"}
+# Typycal output
+2024-10-02 07:45:27 - __main__ - INFO - Connecting EUMDAC datastore...
+2024-10-02 07:45:27 - __main__ - INFO - Listing EUMDAC products matching filters 'pi=EO:EUM:DAT:0415&dtstart=2024-09-23T00:20:00Z&dtend=2024-09-25T00:10:00Z'
+2024-10-02 07:45:34 - __main__ - INFO - Local mode: processing every 50th product to debug faster
+2024-10-02 07:45:34 - __main__ - INFO - 15 matching products found
+2024-10-02 07:45:34 - __main__ - INFO - Downloading products (dask parallelized)...
+2024-10-02 07:45:34 - src.connectors.eumdac_connector - INFO - Downloading products...
+2024-10-02 07:46:21 - __main__ - INFO - Persisting data in a partitionned zarr collection...
+2024-10-02 07:46:21 - src.processors.zarr_processor - INFO - Loading every netcdf files to a xr.Dataset...
+2024-10-02 07:46:22 - src.processors.zarr_processor - INFO - Concat datasets to a single distributed xr.Dataset...
+2024-10-02 07:46:22 - zcollection.collection - INFO - Opening collection: '/tmp/sen3_sral'
+2024-10-02 07:46:22 - src.processors.zarr_processor - INFO - zcollection at /tmp/sen3_sral not found, creating it
+2024-10-02 07:46:22 - zcollection.collection - INFO - Creating the collection: /tmp/sen3_sral/.zcollection
+2024-10-02 07:46:22 - src.processors.zarr_processor - INFO - Inserting data to the zarr collection at /tmp/sen3_sral
+2024-10-02 07:46:22 - zcollection.collection - INFO - Inserting of a 6.63 MiB dataset in the collection
+2024-10-02 07:46:23 - __main__ - INFO - Job done
+```
+
 ```
 # Here is the zarr collection, partitioned by month on variable time_01
 tree -a .
