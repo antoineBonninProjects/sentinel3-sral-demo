@@ -367,10 +367,10 @@ firefox docs/build/html/index.html
 ## TODO
 
 - Pass arguments to the script: date range for file fetching
-- Build a Docker image of this project, to be used by k8s config for our HPC dask cluster
-- Package the code as a .whl: mandatory if we use K8s to run dask jobs to HPC, the Dockerfile built from sources is sufficient. But a .whl is elegant too. The only problem is non pip dependencies like eumdac conda lib.
+- implement a checkpointing mechanism with a small DB, to only fetch new products from EUMDAC datastore
+- Package the code as a .whl: optional if we use K8s to run dask jobs to HPC, the Dockerfile built from sources is sufficient. 
+But a .whl is elegant too. The only problem is non pip dependencies like eumdac conda lib.
 - Set up a local Kubernetes cluster (Minikube) and deploy:
    - A minimal Dask cluster: 1 master / 1 executor
    - A minimal distributed file system (NFS, OpenEBS, or Ceph): 1 node on local setup to store the Zarr collection
-
 - benchmark Read/Write performance for different partitionning and chunking strategies. For read it can only be made with a real use-case.
