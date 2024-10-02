@@ -331,7 +331,7 @@ black .
 ```sh {"id":"01J928Y2ZZ4KYGTHW8MDDZSDVD"}
 # Static type checks - not set as a pre-commit hooks
 # 'PEP 484 prohibits implicit Optional' is annoying -> leads to very verbose code
-python -m mymy .
+python -m mypy .
 ```
 
 ```sh {"id":"01J94K5E9C9Y6C1WB4P4KCCCHM"}
@@ -344,16 +344,6 @@ cd docs; make html; cd -
 # Open doc
 firefox docs/build/html/index.html
 ```
-
-### Code structure
-
-The Python code is splitted in packages:
-
-- **tasks**: A package to store tasks. Currently, it contains only one task.
-- **src**: Custom code for our project, organized into packages by logical function.
-- **utils**: Various generic tools, typically code that would be part of libraries installed via our conda channel or through git submodules.
-
-More information available in the Sphinx doc.
 
 ## TODO
 

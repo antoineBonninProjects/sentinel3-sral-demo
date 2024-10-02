@@ -69,9 +69,9 @@ To run this script, execute the following command:
 
 import logging
 import os
+import eumdac.collection
 import zcollection
 
-import eumdac.product
 from src.connectors.eumdac_connector import EumdacConnector
 from src.processors.zarr_processor import ZarrProcessor
 from utils.logging_utils import setup_root_logging, setup_module_logger
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         }
     ).format()
     logger.info("Listing EUMDAC products matching filters '%s'", opensearch_query)
-    products: eumdac.product.Product = datastore.opensearch(query=opensearch_query)
+    products: eumdac.collection.SearchResults = datastore.opensearch(query=opensearch_query)
     product_ids: list[str] = [str(x) for x in products]
     # If in local mode, process only a subset of the products for faster execution
     if os.getenv("LOCAL_MODE", "1"):

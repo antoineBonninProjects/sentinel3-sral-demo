@@ -12,8 +12,10 @@ Dependencies:
 __all__ = ["setup_root_logging", "setup_module_logger"]
 
 import logging
-import os
 from logging.handlers import TimedRotatingFileHandler
+import os
+from typing import Optional
+
 
 MY_MODULES_PREFIX_LIST: list[str] = ["src", "utils"]
 
@@ -30,7 +32,7 @@ def _list_my_loggers() -> list[str]:
     """
 
     # Get all loggers from the logger manager
-    logger_dict: logging.Logger.manager.loggerDict = logging.Logger.manager.loggerDict
+    logger_dict: dict = logging.Logger.manager.loggerDict
 
     # List loggers derived from the root logger that match the specified prefixes
     own_module_loggers: list[str] = [
@@ -109,7 +111,7 @@ def setup_root_logging(log_file='/tmp/app.log', when='midnight', backup_count=5)
         my_logger.propagate = False
 
 
-def setup_module_logger(module_name: str, log_level: int = None) -> logging.Logger:
+def setup_module_logger(module_name: str, log_level: Optional[int] = None) -> logging.Logger:
     """
     Set up a logger for a specific module with a customizable logging level.
 

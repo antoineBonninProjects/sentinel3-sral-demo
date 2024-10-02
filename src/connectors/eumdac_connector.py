@@ -49,6 +49,7 @@ import shutil
 import zipfile
 
 import dask
+import dask.delayed
 import dask.distributed
 import eumdac
 import eumdac.product
@@ -85,10 +86,10 @@ class EumdacConnector(metaclass=SingletonMeta):
         self._credentials_filename: str = credentials_filename
         self._refresh_token_margin_mn: timedelta = refresh_token_margin_mn
 
-        self._consumer_key: str = None
-        self._consumer_secret: str = None
-        self._token: eumdac.token.AccessToken = None
-        self._datastore: eumdac.DataStore = None
+        self._consumer_key: str = ""
+        self._consumer_secret: str = ""
+        self._token: eumdac.token.AccessToken | None = None
+        self._datastore: eumdac.DataStore | None = None
 
         self.load_credentials()
         self.refresh_token()
@@ -167,7 +168,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         cluster: dask.distributed.LocalCluster = dask.distributed.LocalCluster(processes=False)
         client: dask.distributed.Client = dask.distributed.Client(cluster)
 
-        delayed_tasks = [
+        delayed_tasks: list[dask.delayed.Delayed] = [
             dask.delayed(self._process_product)(
                 collection_id, str(product), download_dir, measurements_filename
             )

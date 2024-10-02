@@ -46,7 +46,7 @@ class OpenSearchQueryFormatter:
         if not isinstance(query_params, dict):
             raise ValueError("query_params must be a dict")
         self._query_params: dict = query_params
-        self._formatted_query: str = None
+        self._formatted_query: str | None = None
 
     @property
     def formatted_query(self):

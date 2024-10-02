@@ -72,7 +72,7 @@ class ZarrProcessor:
         self.zarr_collection_path: str = zarr_collection_path
         self.partition_handler: zcollection.partitioning.Partitioning = partition_handler
         self.index_dimension: str = index_dimension
-        self._collection: zcollection.Collection = None
+        self._collection: zcollection.Collection | None = None
 
     @property
     def collection(self) -> zcollection.Collection:
@@ -101,7 +101,7 @@ class ZarrProcessor:
         :rtype: zcollection.Collection
         """
         # Create zcollection Collection if not existing yet, otherwise use existing
-        collection: zcollection.Collection = None
+        collection: zcollection.Collection | None = None
         try:
             collection = zcollection.open_collection(self.zarr_collection_path, mode="w")
             logger.debug("Using existing zcollection at %s", self.zarr_collection_path)
