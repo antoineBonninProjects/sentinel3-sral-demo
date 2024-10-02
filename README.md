@@ -168,6 +168,7 @@ EOF
 #### Environment variables
 
 # Project environment variables
+
 | Variable Name           | Utility                                                                    | Default Value                   |
 |-------------------------|----------------------------------------------------------------------------|---------------------------------|
 | `LOG_LEVEL`             | Defines the logging level for the task and its modules.                    | `INFO`                          |
@@ -229,7 +230,7 @@ direnv allow # In the folder containing .envrc, asked after each modification of
 python -m tasks.persist_sen3_sral_data_to_zarr
 ```
 
-```sh
+```
 # Here is the zarr collection, partitioned by month on variable time_01
 tree -a .
 .
@@ -314,7 +315,7 @@ Quality is ensured by pre-commit hooks (see the pre-commit-config.yaml file). Ho
 
 ```sh {"id":"01J9207TSCB7YRF3P2QB6G8FRE"}
 # manual Pytests with coverage
-python -m pytest tests --cov=. --cov-report=term-missing
+python -m pytest tests --cov=. --cov-report=term-missing --cov-fail-under=100
 ```
 
 ```sh {"id":"01J9208TSEMJQ1269V8GY60YN1"}
@@ -347,6 +348,7 @@ firefox docs/build/html/index.html
 ### Code structure
 
 The Python code is splitted in packages:
+
 - **tasks**: A package to store tasks. Currently, it contains only one task.
 - **src**: Custom code for our project, organized into packages by logical function.
 - **utils**: Various generic tools, typically code that would be part of libraries installed via our conda channel or through git submodules.
@@ -361,4 +363,5 @@ More information available in the Sphinx doc.
 - Set up a local Kubernetes cluster (Minikube) and deploy:
    - A minimal Dask cluster: 1 master / 1 executor
    - A minimal distributed file system (NFS, OpenEBS, or Ceph): 1 node on local setup to store the Zarr collection
+
 - benchmark Read/Write performance for different partitionning and chunking strategies. For read it can only be made with a real use-case.

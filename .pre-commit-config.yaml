@@ -15,7 +15,7 @@ repos:
   hooks:
     - id: run-pytests
       name: Run Pytest
-      entry: python -m pytest tests --cov=. --cov-report=term-missing
+      entry: python -m pytest tests --cov=. --cov-report=term-missing --cov-fail-under=100
       language: system
       types: [python]
       pass_filenames: false

@@ -1,0 +1,3 @@
+[run]
+omit =
+    tasks/persist_sen3_sral_data_to_zarr.py

@@ -163,12 +163,12 @@ def test_download_products(connector, mocker):
 
     collection_id = "collection1"
     product_ids = [f"product{x}" for x in range(100)]
-    download_dir = "downloads"
+    download_dir = "tests/downloads"
 
     downloaded_folders = connector.download_products(collection_id, product_ids, download_dir)
 
     # Assert the correct folder structure is returned
-    assert downloaded_folders == [f"downloads/product{x}" for x in range(100)]
+    assert downloaded_folders == [f"tests/downloads/product{x}" for x in range(100)]
 
 
 def test_download_product(connector):
@@ -214,7 +214,7 @@ def test_unzip_product(connector, mocker):
     """
     zip_path = "./file.zip"
     product_id = "product1"
-    download_dir = "downloads"
+    download_dir = "tests/downloads"
 
     # Create a dummy zip file for testing
     with zipfile.ZipFile(zip_path, 'w') as zip_file:
@@ -266,7 +266,7 @@ def test_process_product(connector, mocker):
 
     collection_id = "collection1"
     product_id = "product1"
-    download_dir = "downloads"
+    download_dir = "tests/downloads"
 
     # Check that all steps were called, with default measurements_filename
     result = connector._process_product(collection_id, product_id, download_dir)
