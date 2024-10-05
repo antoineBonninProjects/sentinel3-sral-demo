@@ -371,7 +371,24 @@ firefox docs/build/html/index.html
 - Package the code as a .whl: optional if we use K8s to run dask jobs to HPC, the Dockerfile built from sources is sufficient.
    But a .whl is elegant too. The only problem is non pip dependencies like eumdac conda lib.
 - Set up a local Kubernetes cluster (Minikube) and deploy:
+
    - A minimal Dask cluster: 1 master / 1 executor
    - A minimal distributed file system (NFS, OpenEBS, or Ceph): 1 node on local setup to store the Zarr collection
 
 - benchmark Read/Write performance for different partitionning and chunking strategies. For read it can only be made with a real use-case.
+
+## About Spatial Altimetry algorithms (SAR / LRM)
+
+When it comes to Satellite Altimeters, one of the first challene to solve is to extract data from the altimeter Waveform. I made some quick researches about the implementation of SAMOSA (SAR Altimetry MOde Studies and Applications) restacker algorithm and retrackers for LRM (Low Resolution Mode, for deep ocean) altimetry.
+
+Here are two implementations I found for SAMOSA:
+- [pysamosa](https://github.com/floschl/pysamosa)
+- [pysiral](https://github.com/pysiral/pysiral/blob/main/pysiral/retracker/samosa.py)
+
+And for LRM, I did not found an implementation on GitHub, but [this document](https://climate.esa.int/sites/default/files/Sea_State_cci_ATBD_v1.1-signed_0.pdf) seems to describe pretty well common LRM algo:
+- WHALES: Adaptive Leading Edge Subwaveform (for LRM)
+- ADAPTIVE NUMERICAL RETRACKER (for LRM)
+- WHALES (for SAR)
+- LR-RMC OCEAN NUMERICAL RETRACKER (Low-Resolution with Range Migration Correction)
+
+It would be nice to make an implementation of one of WHALES for example. At least determining the *startgate* and *stopgate* of a waveform based on the specifications provided, and which are the basis for the WHALES algo.
