@@ -20,5 +20,7 @@ dependencies:
   - conda-forge::xarray
   - conda-forge::zarr=2.18.3
   - conda-forge::zcollection=2024.2.0
+  - conda-forge::ipykernel
+  - conda-forge::jupyterlab
   # External
   - eumetsat::eumdac
