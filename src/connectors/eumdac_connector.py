@@ -164,7 +164,7 @@ class EumdacConnector(metaclass=SingletonMeta):
         """
         os.makedirs(download_dir, exist_ok=True)
 
-        # Use a local cluster, and threads only
+        # Use a local cluster, and threads only - I/O intensive
         cluster: dask.distributed.LocalCluster = dask.distributed.LocalCluster(processes=False)
         client: dask.distributed.Client = dask.distributed.Client(cluster)
 
