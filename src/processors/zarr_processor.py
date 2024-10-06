@@ -84,7 +84,8 @@ class ZarrProcessor:
         return self._collection
 
     def _open_or_create_collection(
-        self, zarr_data_set: zcollection.Dataset
+        self,
+        zarr_data_set: zcollection.Dataset,
     ) -> zcollection.Collection:
         """
         Open an existing Zarr collection or create a new one if it doesn't exist.
@@ -125,7 +126,7 @@ class ZarrProcessor:
         self,
         netcdf_file_paths: list[str],
         variables: list[str] = None,
-        chunk_size: tuple[int] = (5000,),
+        chunk_sizes: dict[str, tuple[int]] = None,
     ) -> None:
         """
         Save multiple NetCDF datasets to a Zarr collection.
@@ -137,7 +138,7 @@ class ZarrProcessor:
         :param list[str] netcdf_file_paths:
             A list of file paths to the NetCDF datasets to be saved.
         :param list[str] variables: the netCDF variables to extract and save to zarr
-        :param tuple[int] chunk_size: chunks size in zarr
+        :param dict[str, tuple[int]] chunk_sizes: chunks size in zarr, for each variable
 
         :return: None
         :rtype: None
@@ -166,12 +167,18 @@ class ZarrProcessor:
         combined_data: xr.Dataset = xr.concat(xr_ds_list, dim=self.index_dimension)
         combined_data = combined_data.sortby(self.index_dimension)
 
+        if chunk_sizes is not None:  # pragma: no cover
+            for var_name, chunk_size in chunk_sizes.items():
+                if (var_name in combined_data.data_vars) or (var_name in combined_data.coords):
+                    logger.info("Chunking variable '%s' with size %s", var_name, chunk_size)
+                    # Chunk the variable
+                    combined_data[var_name] = combined_data[var_name].chunk(chunk_size)
         zds: zcollection.Dataset = zcollection.Dataset.from_xarray(combined_data)
-
+        logger.info("zds: %s", zds)
         collection: zcollection.Collection = self._open_or_create_collection(zds)
-
         logger.info("Inserting data to the zarr collection at %s", self.zarr_collection_path)
-        collection.insert(zds, chunk_size=chunk_size)
+
+        collection.insert(zds)
 
         client.close()
         cluster.close()

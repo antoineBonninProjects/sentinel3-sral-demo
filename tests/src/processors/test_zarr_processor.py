@@ -152,7 +152,7 @@ def test_save_to_zarr_nominal(processor, setup_zarr_test):
     # Check that the collection methods were called correctly
     mock_collection = setup_zarr_test[3]
     mock_zarr_ds = setup_zarr_test[2]
-    mock_collection.insert.assert_called_once_with(mock_zarr_ds, chunk_size=(5000,))
+    mock_collection.insert.assert_called_once_with(mock_zarr_ds)
 
     # Check if concat was called with correct parameters
     assert xr.concat.call_count == 1
@@ -182,7 +182,7 @@ def test_save_to_zarr_select_variables(processor, setup_zarr_test):
     # Check that the collection methods were called correctly
     mock_collection = setup_zarr_test[3]
     mock_zarr_ds = setup_zarr_test[2]
-    mock_collection.insert.assert_called_once_with(mock_zarr_ds, chunk_size=(5000,))
+    mock_collection.insert.assert_called_once_with(mock_zarr_ds)
 
 
 def test_save_to_zarr_no_netcdf_files(processor):
