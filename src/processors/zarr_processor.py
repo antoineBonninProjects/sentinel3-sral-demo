@@ -121,7 +121,7 @@ class ZarrProcessor:
         self._collection = collection
         return collection
 
-    def netcdf_2_zarr(self, netcdf_file_paths: list[str]) -> None:
+    def netcdf_2_zarr(self, netcdf_file_paths: list[str], chunk_size: tuple[int] = (5000,)) -> None:
         """
         Save multiple NetCDF datasets to a Zarr collection.
 
@@ -131,6 +131,7 @@ class ZarrProcessor:
 
         :param list[str] netcdf_file_paths:
             A list of file paths to the NetCDF datasets to be saved.
+        :param tuple[int] chunk_size: chunks size in zarr
 
         :return: None
         :rtype: None
@@ -161,7 +162,7 @@ class ZarrProcessor:
         collection: zcollection.Collection = self._open_or_create_collection(zds)
 
         logger.info("Inserting data to the zarr collection at %s", self.zarr_collection_path)
-        collection.insert(zds)
+        collection.insert(zds, chunk_size=chunk_size)
 
         client.close()
         cluster.close()
