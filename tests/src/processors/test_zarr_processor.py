@@ -24,9 +24,36 @@ def processor():
 @pytest.fixture
 def setup_zarr_test(mocker):
     """Fixture to set up mock datasets and related behavior."""
-    mock_ds1 = mocker.Mock(spec=xr.Dataset)
-    mock_ds2 = mocker.Mock(spec=xr.Dataset)
+    mock_ds1 = mocker.MagicMock(spec=xr.Dataset)
+    mock_ds2 = mocker.MagicMock(spec=xr.Dataset)
     mocker.patch('xarray.open_dataset', side_effect=[mock_ds1, mock_ds2])
+
+    # Setup the mock datasets to return specific variables
+    mock_ds1.__getitem__.side_effect = lambda key: (
+        mocker.Mock(
+            spec=xr.Dataset,
+            data_vars={
+                k: v
+                for k, v in {'var1': [1, 2, 3], 'var2': [4, 5, 6], 'var3': [7, 8, 9]}.items()
+                if k in key
+            },
+        )
+    )
+
+    mock_ds2.__getitem__.side_effect = lambda key: (
+        mocker.Mock(
+            spec=xr.Dataset,
+            data_vars={
+                k: v
+                for k, v in {
+                    'var1': [10, 20, 30],
+                    'var2': [40, 50, 60],
+                    'var3': [70, 80, 90],
+                }.items()
+                if k in key
+            },
+        )
+    )
 
     mock_zarr_ds = mocker.Mock(spec=zcollection.Dataset)
     mocker.patch('zcollection.Dataset.from_xarray', return_value=mock_zarr_ds)
@@ -133,6 +160,29 @@ def test_save_to_zarr_nominal(processor, setup_zarr_test):
     assert xr.concat.call_args[1] == {'dim': processor.index_dimension}
 
     assert processor.collection is not None
+
+
+def test_save_to_zarr_select_variables(processor, setup_zarr_test):
+    """
+    Test the save_to_zarr method with a few variables specified
+    """
+    netcdf_file_paths = ["file1.nc", "file2.nc"]
+
+    # Call the method under test
+    processor.netcdf_2_zarr(netcdf_file_paths, variables=["var1"])
+
+    # Ensure both datasets were opened
+    xr.open_dataset.assert_called()
+    assert xr.open_dataset.call_count == 2
+
+    # Dataset is combined and sorted
+    mock_combined_ds = setup_zarr_test[4]
+    zcollection.Dataset.from_xarray.assert_called_once_with(mock_combined_ds.sortby())
+
+    # Check that the collection methods were called correctly
+    mock_collection = setup_zarr_test[3]
+    mock_zarr_ds = setup_zarr_test[2]
+    mock_collection.insert.assert_called_once_with(mock_zarr_ds, chunk_size=(5000,))
 
 
 def test_save_to_zarr_no_netcdf_files(processor):

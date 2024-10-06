@@ -121,7 +121,12 @@ class ZarrProcessor:
         self._collection = collection
         return collection
 
-    def netcdf_2_zarr(self, netcdf_file_paths: list[str], chunk_size: tuple[int] = (5000,)) -> None:
+    def netcdf_2_zarr(
+        self,
+        netcdf_file_paths: list[str],
+        variables: list[str] = None,
+        chunk_size: tuple[int] = (5000,),
+    ) -> None:
         """
         Save multiple NetCDF datasets to a Zarr collection.
 
@@ -131,6 +136,7 @@ class ZarrProcessor:
 
         :param list[str] netcdf_file_paths:
             A list of file paths to the NetCDF datasets to be saved.
+        :param list[str] variables: the netCDF variables to extract and save to zarr
         :param tuple[int] chunk_size: chunks size in zarr
 
         :return: None
@@ -150,7 +156,10 @@ class ZarrProcessor:
         for dataset_file in netcdf_file_paths:
             ds: xr.Dataset = xr.open_dataset(dataset_file)
             ds.close()
-            xr_ds_list.append(ds)
+            if variables:
+                xr_ds_list.append(ds[variables])
+            else:
+                xr_ds_list.append(ds)
 
         # concat them along time_dimension to make  single write - index needs to be monotonic
         logger.info("Concat datasets to a single distributed xr.Dataset...")
