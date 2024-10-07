@@ -382,13 +382,23 @@ firefox docs/build/html/index.html
 When it comes to Satellite Altimeters, one of the first challene to solve is to extract data from the altimeter Waveform. I made some quick researches about the implementation of SAMOSA (SAR Altimetry MOde Studies and Applications) restacker algorithm and retrackers for LRM (Low Resolution Mode, for deep ocean) altimetry.
 
 Here are two implementations I found for SAMOSA:
+
 - [pysamosa](https://github.com/floschl/pysamosa)
 - [pysiral](https://github.com/pysiral/pysiral/blob/main/pysiral/retracker/samosa.py)
 
 And for LRM, I did not found an implementation on GitHub, but [this document](https://climate.esa.int/sites/default/files/Sea_State_cci_ATBD_v1.1-signed_0.pdf) seems to describe pretty well common LRM algo:
+
 - WHALES: Adaptive Leading Edge Subwaveform (for LRM)
 - ADAPTIVE NUMERICAL RETRACKER (for LRM)
 - WHALES (for SAR)
 - LR-RMC OCEAN NUMERICAL RETRACKER (Low-Resolution with Range Migration Correction)
 
-It would be nice to make an implementation of one of WHALES for example. At least determining the *startgate* and *stopgate* of a waveform based on the specifications provided, and which are the basis for the WHALES algo.
+I made a small notebook, [notebooks/identify_leading_edges](https://github.com/antoineBonninProjects/sentinel3-sral-demo/blob/main/notebooks/identify_leading_edge.ipynb), to refresh my mind about numpy builtin functions.
+
+The notebook does:
+- downloads multiple enhanced_measurement.nc of sentinel3, with waveforms in variable *waveform_20_plrm_ku*
+- stores all the data retrieved to a zarr collection
+- loads the zarr collection, chunks it (2MB / chunk)
+- applies a simple leading_edges detection algorithm to each chunk to make use of dask parallelization over medium sized chunks
+  - I tried to use vectorized numpy functions over for loops as much as I could
+- stores the computed variables *waveform_20_plrm_ku_startgate* / *waveform_20_plrm_ku_stopgate* for each waveform in new variable in the zarr collection
